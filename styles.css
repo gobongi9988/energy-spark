@@ -120,6 +120,7 @@ h3{font-size:19px;line-height:1.3;letter-spacing:-.02em;font-weight:700}
 a.btn-primary{text-decoration:none}
 .btn-primary.big{min-height:60px;font-size:17px;margin-bottom:18px}
 .btn-primary[disabled]{opacity:.4}
+.btn-primary.accent{background:var(--accent);color:#fff8f4}
 .btn-outline{
   display:block;width:100%;min-height:50px;border-radius:15px;
   border:1px solid var(--line);background:transparent;color:var(--ink);
@@ -194,7 +195,7 @@ a.btn-primary{text-decoration:none}
 
 /* ── 몸풀기 ─────────────────────────── */
 .mission .bar{margin:18px 0 16px}
-.mission .timerbtns .btn-outline{min-height:54px}
+.mission .timerbtns .btn-outline{min-height:54px;width:auto;flex:0 0 auto;padding:0 20px}
 .mission-dur{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 
 /* ── 산책 ───────────────────────────── */
@@ -213,6 +214,7 @@ a.btn-primary{text-decoration:none}
 /* ── 하단 탭 ────────────────────────── */
 .tabbar{
   position:fixed;left:0;right:0;bottom:0;z-index:40;
+  max-width:560px;margin:0 auto;
   display:flex;justify-content:space-around;
   padding:6px 6px calc(6px + env(safe-area-inset-bottom));
   background:color-mix(in srgb, var(--bg) 90%, transparent);

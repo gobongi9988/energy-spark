@@ -173,7 +173,7 @@
       '<article class="card hero">' +
         '<div class="card-top">' +
           '<span class="tag accent">' + esc(moodLabel(itemMoodKey)) + '</span>' +
-          '<span class="tag">' + esc(item.genre) + '</span>' +
+          (item.genre && item.genre !== '내가 추가' ? '<span class="tag">' + esc(item.genre) + '</span>' : '') +
           (item.custom ? '<span class="tag">내가 추가</span>' : '') +
         '</div>' +
         '<h3>' + esc(item.title) + '</h3>' +
@@ -370,8 +370,8 @@
           '</div>' +
           '<h3>' + esc(item.title) + '</h3>' +
           (item.action && item.action.type === 'tab'
-            ? '<button class="btn-primary" id="favGo">' + esc(favActionLabel(item.action)) + '</button>'
-            : '<a class="btn-primary" id="favGo" href="' + esc(item.action && item.action.url || '#') + '" target="_blank" rel="noopener">' + esc(favActionLabel(item.action)) + '</a>') +
+            ? '<button class="btn-primary accent" id="favGo">' + esc(favActionLabel(item.action)) + '</button>'
+            : '<a class="btn-primary accent" id="favGo" href="' + esc(item.action && item.action.url || '#') + '" target="_blank" rel="noopener">' + esc(favActionLabel(item.action)) + '</a>') +
         '</article>';
       var go = $('#favGo');
       if (item.action && item.action.type === 'tab') {
@@ -488,7 +488,7 @@
         '<div class="timerbtns">' +
           '<button class="btn-primary" id="missionStart">' +
             (mission.running ? '멈춤' : mission.done ? '한 번 더' : '시작') + '</button>' +
-          '<button class="btn-outline" id="missionDone">완료</button>' +
+          (mission.done ? '' : '<button class="btn-outline" id="missionDone">완료</button>') +
         '</div>' +
         '<button class="linkbtn center" id="missionNext">다른 미션</button>' +
         (mission.praise ? '<div class="praise" style="margin-top:16px">' + esc(mission.praise) + '</div>' : '') +
@@ -507,7 +507,8 @@
         renderBody();
       }
     });
-    $('#missionDone').addEventListener('click', function () { finishMission(m); });
+    var doneBtn = $('#missionDone');
+    if (doneBtn) doneBtn.addEventListener('click', function () { finishMission(m); });
     $('#missionNext').addEventListener('click', function () {
       var next = pickRandom(D.missions, m.id);
       state.missionId = next.id;
