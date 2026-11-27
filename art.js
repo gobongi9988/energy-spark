@@ -4,16 +4,15 @@
 window.SIDONG_ART = {
   // 1. 목·승모근 — 머리를 오른쪽 어깨로, 손은 머리 위로
   s1: '<svg class="art" viewBox="0 0 320 160" role="img" aria-label="한 손을 머리에 얹고 머리를 옆으로 기울이는 자세">' +
-      '<path class="g" d="M166 30v34"/>' +
-      '<g transform="rotate(-12 150 68)"><circle class="head" cx="150" cy="68" r="13"/>' +
-      '<path class="f" d="M136 72c-4 2-4 6 0 8"/></g>' +
-      '<path class="b" d="M156 80l2 12"/>' +
-      '<path class="b" d="M116 100c12-8 30-10 44-8 14-2 32 0 44 8"/>' +
-      '<path class="b" d="M116 102c-2 12 2 22 10 28M204 102c2 12-2 22-10 28"/>' +
-      '<path class="b" d="M120 100l-10-26"/>' +
-      '<path class="b" d="M110 74c6-16 22-24 38-22"/>' +
-      '<path class="b" d="M142 50h10"/>' +
-      '<path class="a" d="M176 44c-6-6-14-8-22-6" marker-end="url(#ah)"/>' +
+      '<path class="g" d="M170 28v26"/>' +
+      '<g transform="rotate(-12 150 66)"><circle class="head" cx="150" cy="66" r="13"/>' +
+      '<path class="f" d="M136 70c-4 2-4 6 0 8"/></g>' +
+      '<path class="b" d="M147 79v13M153 79v13"/>' +
+      '<path class="b" d="M118 94c14-6 50-6 64 0"/>' +
+      '<path class="b" d="M118 94l-4 30M182 94l4 30"/>' +
+      '<path class="b" d="M182 92c16-22-4-44-30-44"/>' +
+      '<path class="b" d="M152 48h-10"/>' +
+      '<path class="a" d="M140 38c-12 4-18 16-18 30" marker-end="url(#ah)"/>' +
       '</svg>',
 
   // 2. 고양이-소 — 등 위로 / 배 아래로
