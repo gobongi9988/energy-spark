@@ -147,9 +147,10 @@
     var key = b.dataset.mood;
     state.mood = key;
     var matches = library().filter(function (m) { return m.moods.indexOf(key) >= 0; });
-    if (!matches.some(function (m) { return m.id === state.selectedId; })) {
-      state.selectedId = matches.length ? matches[0].id : null;
-    }
+    if (!matches.length) { state.selectedId = null; save(); renderMoods(); renderMusic(); return; }
+    // 같은 기분 안에서 한 곡을 랜덤으로 골라 줌 (누를 때마다 바뀜)
+    var pick = matches[Math.floor(Math.random() * matches.length)];
+    state.selectedId = pick.id;
     save(); renderMoods(); renderMusic();
   });
 
@@ -174,10 +175,12 @@
         '<div class="card-top">' +
           '<span class="tag accent">' + esc(moodLabel(itemMoodKey)) + '</span>' +
           (item.genre && item.genre !== '내가 추가' ? '<span class="tag">' + esc(item.genre) + '</span>' : '') +
+          (item.reco ? '<span class="tag reco">추천</span>' : '') +
           (item.custom ? '<span class="tag">내가 추가</span>' : '') +
         '</div>' +
         '<h3>' + esc(item.title) + '</h3>' +
-        (item.note ? '<p class="note">' + esc(item.note) + '</p>' : '<p class="note">' + esc(item.type === 'track' ? '곡 한 개' : '플레이리스트') + '</p>') +
+        (item.artist ? '<p class="artist">' + esc(item.artist) + '</p>' : '') +
+        (item.note ? '<p class="note">' + esc(item.note) + '</p>' : '') +
         '<a class="btn-primary" href="' + spPage(item) + '" target="_blank" rel="noopener">' +
           '<span class="spotify-mark"><svg viewBox="0 0 24 24"><path d="M7 9.5c3.5-1 7.5-.7 10 .8"/><path d="M7.6 13c2.9-.8 6.2-.5 8.6.8"/><path d="M8.2 16.3c2.3-.6 4.8-.4 6.9.7"/></svg></span>' +
           '스포티파이에서 바로 열기</a>' +
@@ -185,7 +188,8 @@
         '<div class="embed"><iframe src="' + spEmbed(item) + '" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="스포티파이 플레이어"></iframe></div>' +
       '</article>' +
       (matches.length
-        ? '<div class="alt-row">' + matches.map(function (m) {
+        ? '<div class="alt-head">같은 기분 ' + matches.length + '곡 · 눌러서 바꾸기</div>' +
+          '<div class="alt-row wrap">' + matches.map(function (m) {
             return '<button class="alt" data-pick="' + esc(m.id) + '">' + esc(m.title) + '</button>';
           }).join('') + '</div>'
         : '');
@@ -201,18 +205,32 @@
   function renderMusicList() {
     var box = $('#musicList');
     var all = library();
+    var input = $('#musicSearch');
+    var q = input ? (input.value || '').trim().toLowerCase() : '';
+    var shown = q
+      ? all.filter(function (m) {
+          return (m.title + ' ' + (m.artist || '') + ' ' + (m.genre || '')).toLowerCase().indexOf(q) >= 0;
+        })
+      : all;
     $('#musicEditBtn').textContent = state.musicEdit ? '완료' : '편집';
     $('#musicRestoreBtn').hidden = state.musicHidden.length === 0;
+    var countBox = $('#musicCount');
+    if (countBox) countBox.textContent = q ? (shown.length + '/' + all.length) : (all.length + '개');
     if (!all.length) {
       box.innerHTML = '<div class="empty">목록이 비었음. 하나 추가해.</div>';
       return;
     }
-    box.innerHTML = all.map(function (m) {
+    if (!shown.length) {
+      box.innerHTML = '<div class="empty">' + esc(q) + ' — 이걸로는 못 찾음.</div>';
+      return;
+    }
+    box.innerHTML = shown.map(function (m) {
       var moods = m.moods.map(moodLabel).filter(Boolean).join(' · ');
+      var meta = [m.artist, m.genre, moods].filter(Boolean).join(' · ');
       return '<button class="row" data-item="' + esc(m.id) + '">' +
         '<span class="row-main">' +
-          '<span class="row-title">' + esc(m.title) + '</span>' +
-          '<span class="row-meta">' + esc(m.genre) + (moods ? ' · ' + esc(moods) : '') + '</span>' +
+          '<span class="row-title">' + esc(m.title) + (m.reco ? '<span class="row-tag">추천</span>' : '') + '</span>' +
+          '<span class="row-meta">' + esc(meta) + '</span>' +
         '</span>' +
         (state.musicEdit
           ? '<span class="row-del" data-del="' + esc(m.id) + '">−</span>'
@@ -220,6 +238,8 @@
       '</button>';
     }).join('');
   }
+  var searchEl = $('#musicSearch');
+  if (searchEl) searchEl.addEventListener('input', renderMusicList);
   $('#musicList').addEventListener('click', function (e) {
     var del = e.target.closest('[data-del]');
     if (del) {
