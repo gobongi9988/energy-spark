@@ -8,18 +8,20 @@ window.SIDONG = {
     { key: 'blank', label: '멍때리고 싶어' }
   ],
 
-  // Spotify 편집자 플레이리스트 — ID는 open.spotify.com/oembed 로 존재 확인함 (2026-11-27)
+  // 사용자 본인 스포티파이 라이브러리 — 12개 링크 모두 open.spotify.com/oembed 로 존재 확인함 (2026-11-27)
   music: [
-    { id: 'm-lofi',   title: 'lofi beats',                 type: 'playlist', sid: '37i9dQZF1DWWQRwui0ExPn', genre: '로파이',   moods: ['none', 'head'],          note: '아무 일도 안 하는 소리' },
-    { id: 'm-slow',   title: 'slow living',                type: 'playlist', sid: '37i9dQZF1DXc8kgYqQLMfH', genre: '슬로우',   moods: ['none', 'low', 'blank'],  note: '가만히 있어도 되는 쪽' },
-    { id: 'm-chill',  title: 'Chill Hits',                 type: 'playlist', sid: '37i9dQZF1DX4WYpdgoIcn6', genre: '칠',       moods: ['none', 'low'],           note: '적당히 흘러가는 팝' },
-    { id: 'm-piano',  title: 'Peaceful Piano',             type: 'playlist', sid: '37i9dQZF1DX4sWSpwq3LiO', genre: '피아노',   moods: ['low', 'head'],           note: '말 안 걸고 위로도 안 함' },
-    { id: 'm-jazz',   title: 'Jazz Vibes',                 type: 'playlist', sid: '37i9dQZF1DX0SM0LYsmbMT', genre: '재즈',     moods: ['blank', 'head'],         note: '멍때리기엔 재즈가 편함' },
-    { id: 'm-city',   title: 'City Pop: シティ・ポップの今', type: 'playlist', sid: '37i9dQZF1DXdY5tVYFPWb2', genre: '시티팝',   moods: ['blank', 'up'],           note: '옛날 일본, 이상하게 기운 남' },
-    { id: 'm-indie',  title: "Indie's Top 50",             type: 'playlist', sid: '37i9dQZF1DX2Nc3B70tvx0', genre: '인디',     moods: ['up'],                    note: '기타 소리로 겨우 시동' },
-    { id: 'm-mood',   title: 'Mood Booster',               type: 'playlist', sid: '37i9dQZF1DX3rxVfibe1L0', genre: '팝',       moods: ['up'],                    note: '억지로라도 올려야 할 때' },
-    { id: 'm-stress', title: 'Stress Relief',              type: 'playlist', sid: '37i9dQZF1DWXe9gFZP0gtP', genre: '앰비언트', moods: ['head'],                  note: '머리 안 소음 끄는 용도' },
-    { id: 'm-focus',  title: 'Deep Focus',                 type: 'playlist', sid: '37i9dQZF1DWZeKCadgRdKQ', genre: '집중',     moods: ['head', 'none'],          note: '해야 할 게 있을 때' }
+    { id: 'm-20s',    title: '나의20대',                        type: 'playlist', sid: '6CItS6KJaJH7PMgzWq3IHS', genre: '내 플리',       moods: ['low'],            note: '20대에 들은 것들. 지금 들어도 그대로임.' },
+    { id: 'm-withme', title: 'With Me',                          type: 'playlist', sid: '2UXUoE6s0ycf8nySdRuGZ0', genre: '발라드',        moods: ['low'],            note: '발라드 15곡. 울 준비 됐을 때.' },
+    { id: 'm-hk',     title: '내가 사랑했던 홍콩영화📽️',         type: 'playlist', sid: '37iis3ZRVNQOYgyBs4nHJJ', genre: '영화음악',      moods: ['low', 'blank'],   note: '화면 없이도 장면이 나옴.' },
+    { id: 'm-latin',  title: '라틴 재즈 보사노바 삼바',           type: 'playlist', sid: '2DCuR2OGXbM1BNzCTGp9js', genre: '보사노바',      moods: ['head', 'blank'],  note: '말 없이 흐르는 쪽.' },
+    { id: 'm-elec',   title: '일렉트로닉',                       type: 'playlist', sid: '3R6s6pRjjPFLlxfCJQQsNg', genre: '일렉트로닉',    moods: ['head', 'blank'],  note: '머리 비우고 리듬만.' },
+    { id: 'm-sodanco',title: 'So Danco Samba — Lisa Ono',        type: 'track',    sid: '569zdRufk57diqTB3U7R8v', genre: '보사노바',      moods: ['head', 'blank'],  note: '한 곡만. 보사노바 한 잔.' },
+    { id: 'm-weeknd', title: '주말이형',                          type: 'playlist', sid: '4Y4Z8W1WTsW6WZr0bG3d2V', genre: 'R&B',           moods: ['none', 'up'],     note: 'The Weeknd 28곡. 몸이 먼저 움직임.' },
+    { id: 'm-2000s',  title: 'ㅇ',                                type: 'playlist', sid: '1RPBpi3uq6EpU5BRoyneGk', genre: '2000년대',      moods: ['none', 'up'],     note: '2000년대 히트곡. 입이 기억함.' },
+    { id: 'm-hypno',  title: 'Hypnotize — The Notorious B.I.G.',  type: 'track',    sid: '7KwZNVEaqikRSBSpyhXK2j', genre: '힙합',          moods: ['none'],           note: '한 곡으로 분위기 바뀜.' },
+    { id: 'm-idkw',   title: "I Don't Know Why — STONYSKUNK",     type: 'track',    sid: '6PRzCsJtlNT1qJhFerJs0j', genre: '인디',          moods: ['up'],             note: '이상하게 기운 나는 곡.' },
+    { id: 'm-sen',    title: 'This Is SE SO NEON',                type: 'playlist', sid: '37i9dQZF1DZ06evO00dNaV', genre: '인디록',        moods: ['up'],             note: '기타 소리로 겨우 시동.' },
+    { id: 'm-carol',  title: '캐롤',                              type: 'playlist', sid: '7bayY3ARlX6Hw4cnUGNUC6', genre: '캐롤',          moods: ['up', 'none'],     note: '12월이 아니어도 들을 수 있음.' }
   ],
 
   missions: [
