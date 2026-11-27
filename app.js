@@ -36,7 +36,7 @@
     faveHidden: [],
     musicEdit: false,
     faveEdit: false,
-    missionId: null,
+    bodyFilter: 'all',
     counts: { date: todayKey(), timer: 0, mission: 0, walk: 0 },
     timerSize: 180
   };
@@ -482,71 +482,285 @@
   });
 
   // ── 몸풀기 ──────────────────────────────
-  var mission = { running: false, remain: 0, endAt: 0, praise: null, done: false };
+  // body = 한 동작 타이머, routine = 커리큘럼 코스(단계별). 둘 중 하나만 돈다.
+  var body = { activeId: null, running: false, remain: 0, endAt: 0, done: false, praise: null };
+  var routine = null; // { id, i, running, remain, endAt, done }
 
-  function currentMission() {
-    var m = D.missions.filter(function (x) { return x.id === state.missionId; })[0];
-    if (!m) {
-      m = pickRandom(D.missions, state.missionId) || D.missions[0];
-      state.missionId = m.id;
-      save();
-    }
-    return m;
+  function allMoves() {
+    return (D.stretch || []).map(function (m) { return Object.assign({ track: 'stretch' }, m); })
+      .concat((D.simple || []).map(function (m) { return Object.assign({ track: 'simple' }, m); }));
+  }
+  function moveById(id) {
+    return allMoves().filter(function (m) { return m.id === id; })[0] || null;
+  }
+  function routineById(id) {
+    return (D.routines || []).filter(function (r) { return r.id === id; })[0] || null;
+  }
+  function durLabel(sec) {
+    if (sec < 60) return sec + '초';
+    var m = Math.floor(sec / 60), r = sec % 60;
+    return r ? m + '분 ' + r + '초' : m + '분';
+  }
+  function bodyRandomPool() {
+    var f = state.bodyFilter || 'all';
+    return allMoves().filter(function (m) {
+      if (f === 'stretch') return m.track === 'stretch';
+      if (f === 'simple') return m.track === 'simple';
+      return true;
+    });
+  }
+  function stopAllBody() {
+    body.running = false;
+    body.remain = 0;
+    routine = null;
   }
   function renderBody() {
-    var m = currentMission();
-    var pct = mission.done ? 100 : (1 - (mission.remain > 0 ? mission.remain : m.d) / m.d) * 100;
-    var box = $('#missionCard');
-    box.innerHTML =
-      '<article class="card mission">' +
-        '<div class="card-top">' +
-          '<span class="tag accent">약 ' + m.d + '초</span>' +
-          '<span class="tag">' + (mission.running ? '하는 중' : mission.done ? '끝' : '1분 안쪽') + '</span>' +
-        '</div>' +
-        '<h3>' + esc(m.title) + '</h3>' +
-        '<div class="bar"><i id="missionBar" style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i></div>' +
-        '<div class="timerbtns">' +
-          '<button class="btn-primary" id="missionStart">' +
-            (mission.running ? '멈춤' : mission.done ? '한 번 더' : '시작') + '</button>' +
-          (mission.done ? '' : '<button class="btn-outline" id="missionDone">완료</button>') +
-        '</div>' +
-        '<button class="linkbtn center" id="missionNext">다른 미션</button>' +
-        (mission.praise ? '<div class="praise" style="margin-top:16px">' + esc(mission.praise) + '</div>' : '') +
-      '</article>';
+    var f = state.bodyFilter || 'all';
+    $$('#bodySeg button').forEach(function (b) { b.classList.toggle('on', b.dataset.f === f); });
 
-    $('#missionStart').addEventListener('click', function () {
-      if (mission.running) {
-        mission.remain = Math.max(0, (mission.endAt - Date.now()) / 1000);
-        mission.running = false;
-        renderBody();
-      } else {
-        if (mission.done || mission.remain <= 0) { mission.done = false; mission.praise = null; mission.remain = m.d; }
-        chimeStart();
-        mission.running = true;
-        mission.endAt = Date.now() + mission.remain * 1000;
-        renderBody();
-      }
-    });
-    var doneBtn = $('#missionDone');
-    if (doneBtn) doneBtn.addEventListener('click', function () { finishMission(m); });
-    $('#missionNext').addEventListener('click', function () {
-      var next = pickRandom(D.missions, m.id);
-      state.missionId = next.id;
-      mission = { running: false, remain: 0, endAt: 0, praise: null, done: false };
-      save(); renderBody();
-    });
+    var rBox = $('#routineBox');
+    rBox.innerHTML = (f === 'simple' || !(D.routines || []).length)
+      ? ''
+      : D.routines.map(routineCard).join('');
+    rBox.style.marginBottom = rBox.innerHTML ? '' : '0';
 
+    var html = '';
+    if (f !== 'simple') {
+      html += '<div class="section-head"><h2>스트레칭 &amp; 요가</h2><span class="count">' + D.stretch.length + '개</span></div>';
+      html += D.stretch.map(moveCard).join('');
+    }
+    if (f !== 'stretch') {
+      html += '<div class="section-head"><h2>진짜 간단한 것</h2><span class="count">' + D.simple.length + '개</span></div>';
+      html += D.simple.map(moveCard).join('');
+    }
+    $('#moveList').innerHTML = html;
     $('#bodyCount').textContent = '오늘 몸풀기 ' + state.counts.mission + '번';
   }
-  function finishMission(m) {
-    if (mission.done) return;
-    mission.running = false;
-    mission.done = true;
-    mission.remain = 0;
-    mission.praise = D.praise[Math.floor(Math.random() * D.praise.length)];
-    state.counts.mission += 1;
-    save(); chimeDone(); renderBody();
+
+  function moveCard(m) {
+    var active = body.activeId === m.id;
+    var pct = 0;
+    if (active) {
+      if (body.done) pct = 100;
+      else if (body.remain > 0) pct = (1 - body.remain / m.d) * 100;
+    }
+    var dlab = durLabel(m.d);
+    return '<article class="card move' + (active ? ' on' : '') + '" id="mv-' + m.id + '">' +
+      '<div class="card-top">' +
+        '<span class="tag accent">' + esc(m.type || '간단') + '</span>' +
+        (m.reps && m.reps !== dlab ? '<span class="tag">' + esc(m.reps) + '</span>' : '') +
+        '<span class="tag">' + esc(dlab) + '</span>' +
+      '</div>' +
+      '<h3>' + esc(m.name) + '</h3>' +
+      '<p class="mv-good"><b>좋은 데</b>' + esc(m.good) + '</p>' +
+      '<p class="mv-tip">' + esc(m.tip) + '</p>' +
+      (active
+        ? '<div class="bar"><i id="mvBar" style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i></div>' +
+          '<div class="timerbtns">' +
+            '<button class="btn-primary" data-toggle="' + esc(m.id) + '">' +
+              (body.running ? '멈춤' : body.done ? '한 번 더' : body.remain > 0 ? '계속' : '시작') + '</button>' +
+            (body.done ? '' : '<button class="btn-outline slim" data-done="' + esc(m.id) + '">완료</button>') +
+          '</div>' +
+          (body.praise ? '<div class="praise" style="margin-top:14px">' + esc(body.praise) + '</div>' : '') +
+          '<button class="linkbtn center" data-close="1">접기</button>'
+        : '<div class="mv-btns">' +
+            '<button class="mv-go" data-start="' + esc(m.id) + '">시작</button>' +
+            '<button class="mv-check" data-done="' + esc(m.id) + '">완료</button>' +
+          '</div>') +
+    '</article>';
   }
+
+  function routineCard(r) {
+    var cur = (routine && routine.id === r.id) ? routine : null;
+    var total = r.steps.reduce(function (a, s) { return a + s.sec; }, 0);
+    var steps = r.steps.map(function (s, i) {
+      var m = moveById(s.id) || { name: s.id };
+      var cls = '', mark = i + 1, right = '<span class="t">' + durLabel(s.sec) + '</span>';
+      if (cur) {
+        var passed = i < cur.i || (cur.done && i <= cur.i);
+        if (passed) { cls = ' past'; mark = '✓'; }
+        else if (i === cur.i) {
+          cls = ' on';
+          right = '<span class="t" id="rTime">' + fmt(cur.remain) + '</span>';
+        }
+      }
+      return '<li class="step' + cls + '"><span class="n">' + mark + '</span>' +
+        '<span class="s-name">' + esc(m.name) + '</span>' + right + '</li>';
+    }).join('');
+
+    var btns;
+    if (!cur) btns = '<button class="btn-primary" data-rstart="' + esc(r.id) + '">코스 시작</button>';
+    else if (cur.done) btns = '<button class="btn-primary" data-rstart="' + esc(r.id) + '">한 번 더</button>';
+    else btns = '<button class="btn-primary" data-rtoggle="' + esc(r.id) + '">' + (cur.running ? '멈춤' : '계속') + '</button>' +
+      '<button class="btn-outline slim" data-rnext="' + esc(r.id) + '">' +
+      (cur.i >= r.steps.length - 1 ? '끝내기' : '다음 동작') + '</button>';
+
+    return '<article class="card routine" id="rt-' + r.id + '">' +
+      '<div class="card-top">' +
+        '<span class="tag accent">코스</span>' +
+        '<span class="tag">' + esc(durLabel(total)) + '</span>' +
+        '<span class="tag">' + r.steps.length + '개 동작</span>' +
+      '</div>' +
+      '<h3>' + esc(r.name) + '</h3>' +
+      '<p class="note">' + esc(r.note) + '</p>' +
+      '<ol class="steps">' + steps + '</ol>' +
+      (cur && !cur.done
+        ? '<div class="bar"><i id="rBar" style="width:' +
+            Math.max(0, Math.min(100, (1 - cur.remain / r.steps[cur.i].sec) * 100)) + '%"></i></div>'
+        : '') +
+      '<div class="timerbtns"' + (cur && !cur.done ? '' : ' style="margin-top:14px"') + '>' + btns + '</div>' +
+      (cur && cur.done && body.praise ? '<div class="praise" style="margin-top:14px">' + esc(body.praise) + '</div>' : '') +
+    '</article>';
+  }
+
+  function activateMove(id, auto) {
+    var m = moveById(id);
+    if (!m) return;
+    routine = null;
+    body.activeId = id;
+    body.done = false;
+    body.praise = null;
+    body.remain = m.d;
+    body.running = false;
+    if (auto) {
+      chimeStart();
+      body.running = true;
+      body.endAt = Date.now() + m.d * 1000;
+    }
+    renderBody();
+  }
+  function toggleMove() {
+    var m = moveById(body.activeId);
+    if (!m) return;
+    if (body.running) {
+      body.remain = Math.max(0, (body.endAt - Date.now()) / 1000);
+      body.running = false;
+      renderBody();
+      return;
+    }
+    if (body.done || body.remain <= 0) { body.done = false; body.praise = null; body.remain = m.d; }
+    chimeStart();
+    body.running = true;
+    body.endAt = Date.now() + body.remain * 1000;
+    renderBody();
+  }
+  function finishMove(id) {
+    var m = moveById(id);
+    if (!m) return;
+    routine = null;
+    body.activeId = id;
+    body.running = false;
+    body.done = true;
+    body.remain = 0;
+    body.praise = D.praise[Math.floor(Math.random() * D.praise.length)];
+    state.counts.mission += 1;
+    save(); chimeDone();
+    if (currentTab === 'body') renderBody();
+    toast('하나 함 · 오늘 ' + state.counts.mission + '번');
+  }
+
+  function startRoutine(id) {
+    var r = routineById(id);
+    if (!r) return;
+    body.activeId = null;
+    body.running = false;
+    body.done = false;
+    body.praise = null;
+    routine = { id: id, i: 0, running: false, remain: r.steps[0].sec, endAt: 0, done: false };
+    runRoutineStep();
+    bringRoutineIntoView(id);
+  }
+  function bringRoutineIntoView(id) {
+    if (currentTab !== 'body') return;
+    var el = document.getElementById('rt-' + id);
+    if (!el) return;
+    var r = el.getBoundingClientRect();
+    if (r.top < 80 || r.bottom > window.innerHeight - 20) {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }
+  function runRoutineStep() {
+    var r = routine && routineById(routine.id);
+    if (!r) return;
+    var st = r.steps[routine.i];
+    routine.done = false;
+    chimeStart();
+    routine.running = true;
+    routine.remain = st.sec;
+    routine.endAt = Date.now() + st.sec * 1000;
+    renderBody();
+  }
+  function nextRoutineStep() {
+    var r = routine && routineById(routine.id);
+    if (!r) return;
+    if (routine.i >= r.steps.length - 1) { finishRoutine(); return; }
+    routine.i += 1;
+    runRoutineStep();
+    bringRoutineIntoView(r.id);
+  }
+  function finishRoutine() {
+    if (!routine) return;
+    routine.running = false;
+    routine.done = true;
+    routine.remain = 0;
+    body.praise = D.praise[Math.floor(Math.random() * D.praise.length)];
+    state.counts.mission += 1;
+    save(); chimeDone();
+    if (currentTab === 'body') renderBody();
+    toast('코스 한 바퀴 끝');
+  }
+
+  $('#bodyRandom').addEventListener('click', function () {
+    var pool = bodyRandomPool();
+    if (!pool.length) return;
+    var m = pickRandom(pool, body.activeId);
+    if (!m) return;
+    activateMove(m.id, true);
+    var el = document.getElementById('mv-' + m.id);
+    if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    window.setTimeout(function () { toast('이거 해봐 · ' + m.name); }, 260);
+  });
+
+  $('#bodySeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-f]');
+    if (!b) return;
+    state.bodyFilter = b.dataset.f;
+    save(); renderBody();
+  });
+
+  $('#moveList').addEventListener('click', function (e) {
+    var el;
+    if ((el = e.target.closest('[data-start]'))) { activateMove(el.dataset.start, false); return; }
+    if ((el = e.target.closest('[data-toggle]'))) {
+      if (body.activeId !== el.dataset.toggle || routine) activateMove(el.dataset.toggle, false);
+      else toggleMove();
+      return;
+    }
+    if ((el = e.target.closest('[data-done]'))) { finishMove(el.dataset.done); return; }
+    if (e.target.closest('[data-close]')) {
+      body.activeId = null; body.running = false; body.done = false; body.praise = null; body.remain = 0;
+      renderBody();
+    }
+  });
+
+  $('#routineBox').addEventListener('click', function (e) {
+    var el;
+    if ((el = e.target.closest('[data-rstart]'))) { startRoutine(el.dataset.rstart); return; }
+    if ((el = e.target.closest('[data-rtoggle]'))) {
+      if (!routine || routine.id !== el.dataset.rtoggle) { startRoutine(el.dataset.rtoggle); return; }
+      if (routine.running) {
+        routine.remain = Math.max(0, (routine.endAt - Date.now()) / 1000);
+        routine.running = false;
+      } else {
+        routine.running = true;
+        routine.endAt = Date.now() + routine.remain * 1000;
+        chimeStart();
+      }
+      renderBody();
+      return;
+    }
+    if (e.target.closest('[data-rnext]')) { nextRoutineStep(); }
+  });
 
   // ── 타이머 ──────────────────────────────
   var timer = { running: false, remain: 180, endAt: 0 };
@@ -690,20 +904,38 @@
       }
       if (currentTab === 'timer') renderTimer();
     }
-    if (mission.running) {
-      mission.remain = Math.max(0, (mission.endAt - Date.now()) / 1000);
-      if (mission.remain <= 0) {
-        finishMission(currentMission());
-      } else if (currentTab === 'body') {
-        var m = currentMission();
-        var bar = $('#missionBar');
-        if (bar) bar.style.width = Math.max(0, Math.min(100, (1 - mission.remain / m.d) * 100)) + '%';
+    if (routine && routine.running) {
+      var rr = routineById(routine.id);
+      if (rr) {
+        routine.remain = Math.max(0, (routine.endAt - Date.now()) / 1000);
+        if (routine.remain <= 0) {
+          nextRoutineStep();
+        } else if (currentTab === 'body') {
+          var st = rr.steps[routine.i];
+          var rbar = $('#rBar');
+          if (rbar) rbar.style.width = Math.max(0, Math.min(100, (1 - routine.remain / st.sec) * 100)) + '%';
+          var rtime = $('#rTime');
+          if (rtime) rtime.textContent = fmt(routine.remain);
+        }
+      }
+    } else if (body.running) {
+      var bm = moveById(body.activeId);
+      if (bm) {
+        body.remain = Math.max(0, (body.endAt - Date.now()) / 1000);
+        if (body.remain <= 0) {
+          finishMove(bm.id);
+        } else if (currentTab === 'body') {
+          var mbar = $('#mvBar');
+          if (mbar) mbar.style.width = Math.max(0, Math.min(100, (1 - body.remain / bm.d) * 100)) + '%';
+        }
       }
     }
     if (timer.running) {
       chip.hidden = false; chipLabel.textContent = '타이머'; chipTime.textContent = fmt(timer.remain);
-    } else if (mission.running) {
-      chip.hidden = false; chipLabel.textContent = '몸풀기'; chipTime.textContent = fmt(mission.remain);
+    } else if (routine && routine.running) {
+      chip.hidden = false; chipLabel.textContent = '코스'; chipTime.textContent = fmt(routine.remain);
+    } else if (body.running) {
+      chip.hidden = false; chipLabel.textContent = '몸풀기'; chipTime.textContent = fmt(body.remain);
     } else {
       chip.hidden = true;
     }

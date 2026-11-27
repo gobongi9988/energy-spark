@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="시동">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="styles.css?v=20261127f">
+<link rel="stylesheet" href="styles.css?v=20261127g">
 </head>
 <body>
 <div class="app">
@@ -64,9 +64,18 @@
     <!-- 3. 몸 움직이기 -->
     <section class="screen" id="screen-body">
       <h1>몸부터 깨우기</h1>
-      <p class="sub">1분도 안 걸리는 것만 모아둠. 하나만 하고 끝내도 됨.</p>
+      <p class="sub">스트레칭·요가부터 창문 열기까지. 하나만 해도 시동 걸림.</p>
 
-      <div id="missionCard" class="stack"></div>
+      <button class="btn-primary big" id="bodyRandom">오늘 뭐 할까 · 랜덤 1개</button>
+
+      <div class="seg tight" id="bodySeg">
+        <button data-f="all" class="on">전체</button>
+        <button data-f="stretch">스트레칭·요가</button>
+        <button data-f="simple">간단한 루틴</button>
+      </div>
+
+      <div id="routineBox" class="stack"></div>
+      <div id="moveList" class="stack"></div>
       <div id="bodyCount" class="countline"></div>
     </section>
 
@@ -194,7 +203,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="data.js?v=20261127f"></script>
-<script src="app.js?v=20261127f"></script>
+<script src="data.js?v=20261127g"></script>
+<script src="app.js?v=20261127g"></script>
 </body>
 </html>
