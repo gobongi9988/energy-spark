@@ -33,7 +33,6 @@
     musicEdit: false,
     faveEdit: false,
     bodyFilter: 'all',
-    timerPlayerOpen: false,
     timerSize: 180
   };
   var state;
@@ -209,6 +208,11 @@
     currentTab = name;
     $$('.screen').forEach(function (s) { s.classList.toggle('active', s.id === 'screen-' + name); });
     $$('.tab').forEach(function (t) { t.classList.toggle('on', t.dataset.tab === name); });
+    // 음악 탭을 떠나면 플레이어는 미니 바만 남기고 접어 둠(재생은 계속)
+    if (player.frame) {
+      if (name === 'music') { if (!player.userCollapsed) setDockOpen(true, true); }
+      else if (player.open) setDockOpen(false, true);
+    }
     if (name === 'timer') renderTimer();
     if (name === 'walk') renderWalk();
     if (name === 'body') renderBody();
@@ -237,9 +241,116 @@
     return m ? m.label : '';
   }
   function spPage(item) { return 'https://open.spotify.com/' + item.type + '/' + item.sid; }
-  function spUri(item) { return 'spotify:' + item.type + ':' + item.sid; }
-  function spEmbed(item) { return 'https://open.spotify.com/embed/' + item.type + '/' + item.sid + '?utm_source=generator&theme=0'; }
-  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function spLink(item) {
+    if (item.sid) return spPage(item);
+    return 'https://open.spotify.com/search/' + encodeURIComponent([item.title, item.artist].filter(Boolean).join(' '));
+  }
+
+  // ── 유튜브 플레이어 (하나만 두고 탭을 바꿔도 안 부숨) ──────────
+  var player = { itemId: null, videoId: null, frame: null, open: false, playing: false, userCollapsed: false };
+  var dockEl = $('#dock');
+
+  function ytCmd(func, args) {
+    if (!player.frame || !player.frame.contentWindow) return;
+    player.frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: func, args: args || [] }), '*');
+  }
+  function paintPlayBtn() {
+    var b = $('#dockPlay');
+    if (!b) return;
+    b.innerHTML = player.playing
+      ? '<svg viewBox="0 0 24 24"><path d="M9 5.5v13M15 5.5v13"/></svg>'
+      : '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>';
+  }
+  function setPlaying(on) {
+    on = !!on;
+    if (player.playing === on) return;
+    player.playing = on;
+    paintPlayBtn();
+    renderMusic();
+    renderTimer();
+  }
+  function setDockOpen(open, auto) {
+    player.open = !!open;
+    if (!auto) player.userCollapsed = !player.open;
+    dockEl.classList.toggle('open', player.open);
+    document.body.classList.toggle('dock-open', player.open);
+  }
+  function loadTrack(item, autoplay, open, force) {
+    if (!item) return;
+    if (!item.yt) { toast('이 곡은 앱에서 틀 수 있는 영상이 없음'); return; }
+    dockEl.hidden = false;
+    document.body.classList.add('has-dock');
+    $('#dockTitle').textContent = item.title;
+    $('#dockArtist').textContent = item.artist || '';
+    if (player.videoId === item.yt && !force) {
+      if (open !== false) setDockOpen(true);
+      if (autoplay) { ytCmd('playVideo'); setPlaying(true); }
+      renderMusic(); renderTimer();
+      return;
+    }
+    player.itemId = item.id;
+    player.videoId = item.yt;
+    player.playing = !!autoplay;
+    var box = $('#dockVideo');
+    box.innerHTML = '';
+    var f = document.createElement('iframe');
+    f.src = 'https://www.youtube.com/embed/' + item.yt +
+      '?enablejsapi=1&playsinline=1&rel=0&modestbranding=1' + (autoplay ? '&autoplay=1' : '');
+    f.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+    f.setAttribute('allowfullscreen', '');
+    f.setAttribute('title', item.title + ' — ' + (item.artist || '') + ' (YouTube)');
+    box.appendChild(f);
+    player.frame = f;
+    paintPlayBtn();
+    if (open !== false) setDockOpen(true); else { player.open = false; player.userCollapsed = true; dockEl.classList.remove('open'); document.body.classList.remove('dock-open'); }
+    renderMusic(); renderTimer();
+  }
+  function closePlayer() {
+    player.itemId = null; player.videoId = null; player.frame = null; player.playing = false;
+    $('#dockVideo').innerHTML = '';
+    dockEl.hidden = true;
+    dockEl.classList.remove('open');
+    document.body.classList.remove('has-dock', 'dock-open');
+    player.open = false;
+    player.userCollapsed = false;
+    renderMusic(); renderTimer();
+  }
+  // 곡을 고를 때: 들고 있는 음악이 없으면 플레이어를 미리 띄워 둠(재생은 버튼으로)
+  function previewLoad(item) {
+    if (!item || !item.yt) return;
+    if (player.playing) return;
+    loadTrack(item, false, true);
+  }
+  function togglePlay(item, open) {
+    if (!item) return;
+    if (!item.yt) { toast('이 곡은 앱에서 틀 수 있는 영상이 없음'); return; }
+    if (player.itemId === item.id && player.frame) {
+      if (player.playing) { ytCmd('pauseVideo'); setPlaying(false); }
+      else { loadTrack(item, true, open, true); }
+      return;
+    }
+    loadTrack(item, true, open);
+  }
+  $('#dockPlay').addEventListener('click', function () {
+    if (!player.frame) return;
+    if (player.playing) { ytCmd('pauseVideo'); setPlaying(false); }
+    else { ytCmd('playVideo'); setPlaying(true); }
+  });
+  $('#dockExpand').addEventListener('click', function () { setDockOpen(!player.open); });
+  $('#dockClose').addEventListener('click', closePlayer);
+  window.addEventListener('message', function (e) {
+    if (typeof e.data !== 'string') return;
+    var d;
+    try { d = JSON.parse(e.data); } catch (err) { return; }
+    if (!d || d.event !== 'infoDelivery' || !d.info) return;
+    if (typeof d.info.playerState === 'number') setPlaying(d.info.playerState === 1);
+  });
+  function measureTabs() {
+    var tb = $('#tabbar');
+    if (tb) document.documentElement.style.setProperty('--tabh', tb.offsetHeight + 'px');
+  }
+  measureTabs();
+  window.addEventListener('resize', measureTabs);
 
   function renderMoods() {
     var box = $('#moodChips');
@@ -258,6 +369,7 @@
     var pick = matches[Math.floor(Math.random() * matches.length)];
     state.selectedId = pick.id;
     save(); renderMoods(); renderMusic();
+    previewLoad(pick);
   });
 
   function renderMusic() {
@@ -287,11 +399,16 @@
         '<h3>' + esc(item.title) + '</h3>' +
         (item.artist ? '<p class="artist">' + esc(item.artist) + '</p>' : '') +
         (item.note ? '<p class="note">' + esc(item.note) + '</p>' : '') +
-        '<a class="btn-primary" href="' + spPage(item) + '" target="_blank" rel="noopener">' +
-          '<span class="spotify-mark"><svg viewBox="0 0 24 24"><path d="M7 9.5c3.5-1 7.5-.7 10 .8"/><path d="M7.6 13c2.9-.8 6.2-.5 8.6.8"/><path d="M8.2 16.3c2.3-.6 4.8-.4 6.9.7"/></svg></span>' +
-          '스포티파이에서 바로 열기</a>' +
-        (isIOS ? '<div class="applink"><a class="linkbtn" href="' + spUri(item) + '">앱 URI(spotify:)로 열기</a></div>' : '') +
-        '<div class="embed"><iframe src="' + spEmbed(item) + '" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="스포티파이 플레이어"></iframe></div>' +
+        (item.yt
+          ? '<button class="btn-primary" data-play="' + esc(item.id) + '">' +
+              (player.itemId === item.id
+                ? (player.playing ? '❚❚ 잠깐 멈추기' : '▶ 이어서 재생')
+                : '▶ 유튜브로 듣기') + '</button>' +
+            '<p class="playerhint">유튜브로 전곡 재생 · 다른 탭 가도 안 끊김</p>' +
+            '<div class="applink"><a class="linkbtn tiny" href="' + spLink(item) + '" target="_blank" rel="noopener">스포티파이에서 열기</a></div>'
+          : '<a class="btn-primary" href="' + spLink(item) + '" target="_blank" rel="noopener">' +
+              '<span class="spotify-mark"><svg viewBox="0 0 24 24"><path d="M7 9.5c3.5-1 7.5-.7 10 .8"/><path d="M7.6 13c2.9-.8 6.2-.5 8.6.8"/><path d="M8.2 16.3c2.3-.6 4.8-.4 6.9.7"/></svg></span>' +
+              '스포티파이에서 열기</a>') +
       '</article>' +
       (matches.length
         ? '<div class="alt-head">같은 기분 ' + matches.length + '곡 · 눌러서 바꾸기</div>' +
@@ -304,6 +421,12 @@
   }
 
   $('#musicResult').addEventListener('click', function (e) {
+    var p = e.target.closest('[data-play]');
+    if (p) {
+      var it = library().filter(function (m) { return m.id === p.dataset.play; })[0];
+      if (it) togglePlay(it, true);
+      return;
+    }
     var b = e.target.closest('[data-pick]');
     if (b) { state.selectedId = b.dataset.pick; save(); renderMusic(); }
   });
@@ -366,6 +489,7 @@
       state.selectedId = item.id;
       state.mood = item.moods[0] || state.mood;
       save(); renderMoods(); renderMusic();
+      previewLoad(item);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   });
@@ -421,6 +545,11 @@
     if (m) return { type: m[1], sid: m[2] };
     return null;
   }
+  function parseYoutube(str) {
+    var s = String(str || '').trim();
+    var m = s.match(/(?:youtube\.com\/(?:watch\?(?:[^#]*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
   function fetchTitle(type, sid) {
     return fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent('https://open.spotify.com/' + type + '/' + sid))
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -430,9 +559,10 @@
 
   $('#mSave').addEventListener('click', function () {
     var hint = $('#mHint');
-    var parsed = parseSpotify($('#mLink').value);
-    if (!parsed) {
-      hint.textContent = 'open.spotify.com 곡·플레이리스트·앨범 링크를 붙여넣어 줘.';
+    var ytId = parseYoutube($('#mLink').value);
+    var parsed = ytId ? null : parseSpotify($('#mLink').value);
+    if (!ytId && !parsed) {
+      hint.textContent = '유튜브 링크(youtu.be/… 또는 watch?v=…)나 스포티파이 링크를 붙여넣어 줘.';
       hint.classList.add('bad');
       return;
     }
@@ -450,9 +580,10 @@
       settled = true;
       state.musicAdded.push({
         id: uid('u'),
-        title: typed || title || (parsed.type === 'track' ? '내가 추가한 곡' : '내가 추가한 리스트'),
-        type: parsed.type,
-        sid: parsed.sid,
+        title: typed || title || (ytId ? '내가 추가한 곡' : (parsed.type === 'track' ? '내가 추가한 곡' : '내가 추가한 리스트')),
+        yt: ytId || null,
+        type: parsed ? parsed.type : 'track',
+        sid: parsed ? parsed.sid : null,
         genre: '내가 추가',
         moods: addMoods.slice(),
         note: ''
@@ -460,7 +591,7 @@
       state.selectedId = state.musicAdded[state.musicAdded.length - 1].id;
       save(); closeSheets(); renderMusic(); toast('추가했음');
     };
-    if (typed) { finish(null); return; }
+    if (typed || ytId || !parsed) { finish(null); return; }
     fetchTitle(parsed.type, parsed.sid).then(finish);
     setTimeout(function () { if (!settled) finish(null); }, 3500);
   });
@@ -501,7 +632,10 @@
     if (a.type === 'song') {
       var it = library().filter(function (m) { return m.id === a.id; })[0];
       goTab('music');
-      if (it) { state.selectedId = it.id; state.mood = it.moods[0] || state.mood; save(); renderMoods(); renderMusic(); }
+      if (it) {
+        state.selectedId = it.id; state.mood = it.moods[0] || state.mood;
+        save(); renderMoods(); renderMusic(); togglePlay(it, true);
+      }
     }
   }
   function renderFav() {
@@ -899,29 +1033,11 @@
     var r = s % 60;
     return m + ':' + (r < 10 ? '0' : '') + r;
   }
-  // 타이머 화면에서 바로 듣기 (스포티파이 임베드 펼치기 / 앱으로 열기)
-  var timerPlayerId = null, timerPlayerOpen = false;
-  function closeTimerEmbed() {
-    timerPlayerOpen = false;
-    var box = $('#timerEmbed');
-    if (!box) return;
-    box.hidden = true;
-    box.innerHTML = '';
-    $('#timerPlay').textContent = '▶ 재생';
-  }
-  function openTimerEmbed() {
+  // 타이머 화면에서 바로 듣기 (유튜브 그 곡을 그대로 틀어 줌)
+  $('#timerListen').addEventListener('click', function () {
     var sel = library().filter(function (m) { return m.id === state.selectedId; })[0];
     if (!sel) { goTab('music'); return; }
-    timerPlayerOpen = true;
-    var box = $('#timerEmbed');
-    box.innerHTML = '<iframe src="' + spEmbed(sel) + '&autoplay=1" height="152" frameborder="0" ' +
-      'allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" ' +
-      'loading="lazy" title="스포티파이 플레이어"></iframe>';
-    box.hidden = false;
-    $('#timerPlay').textContent = '▼ 접기';
-  }
-  $('#timerPlay').addEventListener('click', function () {
-    if (timerPlayerOpen) closeTimerEmbed(); else openTimerEmbed();
+    togglePlay(sel, false);
   });
 
   function renderTimer() {
@@ -936,11 +1052,14 @@
     });
     var sel = library().filter(function (m) { return m.id === state.selectedId; })[0];
     $('#timerMusicName').textContent = sel ? sel.title : '아직 안 고름';
-    $('#timerMusicRow').hidden = !sel;
-    if (sel) $('#timerAppLink').href = spPage(sel);
-    if (timerPlayerId !== (sel ? sel.id : null)) {
-      timerPlayerId = sel ? sel.id : null;
-      closeTimerEmbed();
+    var tl = $('#timerListen'), al = $('#timerAppLink');
+    if (tl) {
+      tl.hidden = !sel;
+      if (sel) tl.textContent = (player.itemId === sel.id && player.playing) ? '❚❚ 잠깐 멈추기' : '▶ 이 곡 틀기';
+    }
+    if (al) {
+      al.hidden = !sel;
+      if (sel) al.href = spLink(sel);
     }
   }
   function switchSize(sec) {

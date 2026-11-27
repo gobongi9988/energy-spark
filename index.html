@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="assets/dachshund-180.png">
 <link rel="icon" href="assets/dachshund.png" sizes="512x512" type="image/png">
 <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
-<link rel="stylesheet" href="styles.css?v=20261127i">
+<link rel="stylesheet" href="styles.css?v=20261127j">
 </head>
 <body>
 <div class="app">
@@ -28,7 +28,7 @@
     <!-- 1. 기분별 음악 -->
     <section class="screen active" id="screen-music">
       <h1>지금 기분, 뭐임?</h1>
-      <p class="sub">기분 하나 고르면 바로 나옴. 앱으로 열림.</p>
+      <p class="sub">기분 하나 고르면 바로 나옴. 앱 안에서 끝까지 재생됨.</p>
 
       <div class="chips" id="moodChips"></div>
       <div id="musicResult" class="stack"></div>
@@ -105,11 +105,8 @@
           <span id="timerMusicName">아직 안 고름</span>
           <button class="linkbtn" data-goto="music">고르기</button>
         </div>
-        <div class="mini-row mini-actions" id="timerMusicRow" hidden>
-          <button class="playbtn" id="timerPlay">▶ 재생</button>
-          <a class="linkbtn" id="timerAppLink" target="_blank" rel="noopener">스포티파이 앱으로</a>
-        </div>
-        <div class="embed" id="timerEmbed" hidden></div>
+        <button class="btn-primary listen" id="timerListen" hidden>▶ 이 곡 틀기</button>
+        <div class="applink"><a class="linkbtn tiny" id="timerAppLink" target="_blank" rel="noopener" hidden>스포티파이에서 열기</a></div>
       </div>
     </section>
 
@@ -123,6 +120,23 @@
       <p class="foot">상계주공3단지(동일로215길 48) 기준 · 지도 앱으로 바로 열림</p>
     </section>
   </main>
+
+  <div class="dock" id="dock" hidden>
+    <div class="dock-video" id="dockVideo"></div>
+    <div class="dock-bar">
+      <div class="dock-meta">
+        <span class="dock-title" id="dockTitle"></span>
+        <span class="dock-artist" id="dockArtist"></span>
+      </div>
+      <button class="dock-btn" id="dockPlay" aria-label="재생·일시정지">
+        <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </button>
+      <button class="dock-btn" id="dockExpand" aria-label="영상 접기">
+        <svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>
+      </button>
+      <button class="dock-btn x" id="dockClose" aria-label="닫기">×</button>
+    </div>
+  </div>
 
   <nav class="tabbar" id="tabbar">
     <button class="tab on" data-tab="music">
@@ -157,11 +171,11 @@
     <button class="x" data-close>닫기</button>
   </div>
   <label class="field">
-    <span>스포티파이 링크</span>
-    <input id="mLink" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="open.spotify.com/track/...">
+    <span>유튜브 링크 (앱에서 재생)</span>
+    <input id="mLink" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="youtu.be/... 또는 youtube.com/watch?v=...">
   </label>
   <label class="field">
-    <span>이름 (비우면 스포티파이 제목 그대로)</span>
+    <span>이름 (비우면 그냥 '내가 추가한 곡')</span>
     <input id="mName" placeholder="예: 새벽에 듣는 것">
   </label>
   <div class="field">
@@ -215,7 +229,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="data.js?v=20261127i"></script>
-<script src="app.js?v=20261127i"></script>
+<script src="data.js?v=20261127j"></script>
+<script src="app.js?v=20261127j"></script>
 </body>
 </html>
