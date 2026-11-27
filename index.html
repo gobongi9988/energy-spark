@@ -14,9 +14,12 @@
 <link rel="apple-touch-icon" href="assets/dachshund-180.png">
 <link rel="icon" href="assets/dachshund.png" sizes="512x512" type="image/png">
 <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
-<link rel="stylesheet" href="styles.css?v=20261127l">
+<link rel="stylesheet" href="styles.css?v=20261127m">
 </head>
 <body>
+<svg class="svgdefs" aria-hidden="true" focusable="false"><defs>
+  <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0.5 L10 5 L0 9.5 z" fill="var(--accent)"/></marker>
+</defs></svg>
 <div class="app">
 
   <header class="top">
@@ -117,7 +120,8 @@
 
       <div id="walkResult" class="stack"></div>
       <button class="btn-primary big" id="walkRoll">코스 뽑기</button>
-      <p class="foot">상계주공3단지(동일로215길 48) 기준 · 지도 앱으로 바로 열림</p>
+      <div id="hotList"></div>
+      <p class="foot">상계주공3단지(동일로215길 48) 기준 · 가보기 누르면 네이버지도로 열림</p>
     </section>
   </main>
 
@@ -210,7 +214,7 @@
   </label>
   <label class="field" id="fUrlWrap">
     <span>링크</span>
-    <input id="fUrl" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://map.kakao.com/...">
+    <input id="fUrl" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://...">
   </label>
   <p class="hint" id="fHint"></p>
   <button class="btn-primary" id="fSave">추가</button>
@@ -229,7 +233,8 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="data.js?v=20261127l"></script>
-<script src="app.js?v=20261127l"></script>
+<script src="data.js?v=20261127m"></script>
+<script src="art.js?v=20261127m"></script>
+<script src="app.js?v=20261127m"></script>
 </body>
 </html>

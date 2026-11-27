@@ -814,6 +814,11 @@
     $('#moveList').innerHTML = html;
   }
 
+  function artOf(id) {
+    var a = (window.SIDONG_ART || {})[id];
+    return a ? a : '';
+  }
+
   function moveCard(m) {
     var active = body.activeId === m.id;
     var pct = 0;
@@ -829,6 +834,7 @@
         '<span class="tag">' + esc(dlab) + '</span>' +
       '</div>' +
       '<h3>' + esc(m.name) + '</h3>' +
+      artOf(m.id) +
       '<p class="mv-good"><b>좋은 데</b>' + esc(m.good) + '</p>' +
       '<p class="mv-tip">' + esc(m.tip) + '</p>' +
       (m.steps ? '<ol class="msteps">' + m.steps.map(function (st) {
@@ -1120,12 +1126,8 @@
     }
     return list;
   }
-  function mapLinks(name) {
-    var q = encodeURIComponent(name);
-    return {
-      kakao: 'https://map.kakao.com/link/search/' + q,
-      naver: 'https://map.naver.com/p/search/' + q
-    };
+  function naverSearch(name) {
+    return 'https://map.naver.com/p/search/' + encodeURIComponent(name);
   }
   function renderWalk() {
     var band = bandNow();
@@ -1135,31 +1137,50 @@
     var box = $('#walkResult');
     if (!c) {
       box.innerHTML = '<div class="card"><p class="note" style="margin:0">코스 뽑기 누르면 하나 나옴. ' + esc(band) + '에 걸을 만한 것만.</p></div>';
-      return;
+    } else {
+      box.innerHTML =
+        '<article class="card hero">' +
+          '<div class="card-top">' +
+            '<span class="tag accent">' + esc(band) + '</span>' +
+            '<span class="tag">' + esc(c.total) + '</span>' +
+            '<span class="tag">' + esc(c.distance) + '</span>' +
+          '</div>' +
+          '<h3>' + esc(c.title) + '</h3>' +
+          '<p class="note">' + esc(c.note) + '</p>' +
+          '<div class="stops">' +
+            c.stops.map(function (s, i) {
+              return '<div class="stop">' +
+                '<div class="stop-name">' + (i + 1) + '. ' + esc(s.name) + '</div>' +
+                '<div class="stop-sub">' + esc(s.sub) + '</div>' +
+                '<div class="mapbtns">' +
+                  '<a class="mapbtn" href="' + naverSearch(s.query) + '" target="_blank" rel="noopener">가보기</a>' +
+                '</div>' +
+              '</div>';
+            }).join('') +
+          '</div>' +
+        '</article>';
     }
+    renderHot();
+  }
+
+  // 인스타·동네에서 뜨는 카페·빵집·맛집 — 코스와 별개로 늘 보여 줌
+  function renderHot() {
+    var box = $('#hotList');
+    if (!box) return;
+    var list = D.hotplaces || [];
+    if (!list.length) { box.innerHTML = ''; return; }
     box.innerHTML =
-      '<article class="card hero">' +
-        '<div class="card-top">' +
-          '<span class="tag accent">' + esc(band) + '</span>' +
-          '<span class="tag">' + esc(c.total) + '</span>' +
-          '<span class="tag">' + esc(c.distance) + '</span>' +
-        '</div>' +
-        '<h3>' + esc(c.title) + '</h3>' +
-        '<p class="note">' + esc(c.note) + '</p>' +
-        '<div class="stops">' +
-          c.stops.map(function (s, i) {
-            var l = mapLinks(s.query);
-            return '<div class="stop">' +
-              '<div class="stop-name">' + (i + 1) + '. ' + esc(s.name) + '</div>' +
-              '<div class="stop-sub">' + esc(s.sub) + '</div>' +
-              '<div class="mapbtns">' +
-                '<a class="mapbtn" href="' + l.kakao + '" target="_blank" rel="noopener">카카오맵</a>' +
-                '<a class="mapbtn" href="' + l.naver + '" target="_blank" rel="noopener">네이버지도</a>' +
-              '</div>' +
-            '</div>';
-          }).join('') +
-        '</div>' +
-      '</article>';
+      '<div class="section-head"><h2>인스타에서 핫한 데</h2><span class="count">카페·빵집·맛집 ' + list.length + '곳</span></div>' +
+      list.map(function (h) {
+        return '<article class="card hot">' +
+          '<div class="card-top"><span class="tag accent">' + esc(h.cat) + '</span></div>' +
+          '<h3>' + esc(h.name) + '</h3>' +
+          '<p class="hot-addr">' + esc(h.addr) + '</p>' +
+          '<p class="hot-note">' + esc(h.note) + '</p>' +
+          (h.hours ? '<p class="hot-hours">' + esc(h.hours) + '</p>' : '') +
+          '<div class="mapbtns"><a class="mapbtn" href="' + naverSearch(h.query) + '" target="_blank" rel="noopener">가보기</a></div>' +
+        '</article>';
+      }).join('');
   }
   $('#walkRoll').addEventListener('click', function () {
     var pool = coursePool();

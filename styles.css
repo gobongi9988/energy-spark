@@ -8,6 +8,7 @@
   --accent:#dd5f39;
   --accent-ink:#fff7f3;
   --accent-soft:#fbe8e0;
+  --point:#6e8b62;
   --shadow:0 1px 2px rgba(23,21,15,.04), 0 10px 30px -18px rgba(23,21,15,.25);
   --radius:20px;
 }
@@ -23,6 +24,7 @@
     --accent:#f07a51;
     --accent-ink:#1b1009;
     --accent-soft:#2b1c15;
+    --point:#9db98d;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -20px rgba(0,0,0,.8);
   }
 }
@@ -254,6 +256,28 @@ a.btn-primary{text-decoration:none}
 .step.past .n{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .routine .bar{margin:14px 0}
 .routine .timerbtns .btn-outline{min-height:54px;width:auto;flex:0 0 auto;padding:0 20px}
+
+/* ── 동작 그림 설명 (SVG) ─────────────── */
+.svgdefs{position:absolute;width:0;height:0;overflow:hidden}
+.art{display:block;width:100%;height:auto;margin:2px 0 12px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2)}
+.art .b{fill:none;stroke:var(--ink);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.art .b.solid{fill:var(--surface-2)}
+.art .g{fill:none;stroke:var(--muted);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:4 5;opacity:.75}
+.art .a{fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.art .p{fill:var(--point);stroke:var(--surface-2);stroke-width:1.5}
+.art .floor{stroke:var(--muted);stroke-width:1.4;opacity:.32;stroke-linecap:round}
+.art text{font-family:inherit;font-size:10.5px;font-weight:700;fill:var(--ink)}
+.art text.sm{font-size:9px;font-weight:600;fill:var(--muted)}
+
+/* ── 인스타 핫플 ─────────────────────── */
+#hotList{margin-top:6px}
+#hotList .section-head{margin:20px 0 10px}
+.card.hot{padding:16px}
+.card.hot h3{font-size:17px;margin-bottom:7px}
+.hot-addr{font-size:12.5px;line-height:1.45;letter-spacing:-.01em}
+.hot-note{font-size:12.5px;line-height:1.5;color:var(--muted);margin-top:4px;letter-spacing:-.01em}
+.hot-hours{font-size:12px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+.card.hot .mapbtns{margin-top:11px}
 
 /* ── 산책 ───────────────────────────── */
 .stops{display:flex;flex-direction:column;gap:10px;margin-top:4px}
