@@ -558,7 +558,8 @@
         ? '<div class="bar"><i id="mvBar" style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i></div>' +
           '<div class="timerbtns">' +
             '<button class="btn-primary" data-toggle="' + esc(m.id) + '">' +
-              (body.running ? '멈춤' : body.done ? '한 번 더' : body.remain > 0 ? '계속' : '시작') + '</button>' +
+              (body.running ? '멈춤' : body.done ? '한 번 더'
+                : (body.remain > 0 && body.remain < m.d - 0.5) ? '계속' : '시작') + '</button>' +
             (body.done ? '' : '<button class="btn-outline slim" data-done="' + esc(m.id) + '">완료</button>') +
           '</div>' +
           (body.praise ? '<div class="praise" style="margin-top:14px">' + esc(body.praise) + '</div>' : '') +
@@ -730,7 +731,7 @@
 
   $('#moveList').addEventListener('click', function (e) {
     var el;
-    if ((el = e.target.closest('[data-start]'))) { activateMove(el.dataset.start, false); return; }
+    if ((el = e.target.closest('[data-start]'))) { activateMove(el.dataset.start, true); return; }
     if ((el = e.target.closest('[data-toggle]'))) {
       if (body.activeId !== el.dataset.toggle || routine) activateMove(el.dataset.toggle, false);
       else toggleMove();
