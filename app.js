@@ -12,10 +12,6 @@
     });
   }
   function uid(p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-  function todayKey() {
-    var d = new Date();
-    return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
-  }
   function pickRandom(list, avoidId) {
     if (!list.length) return null;
     if (list.length === 1) return list[0];
@@ -37,15 +33,13 @@
     musicEdit: false,
     faveEdit: false,
     bodyFilter: 'all',
-    counts: { date: todayKey(), timer: 0, mission: 0, walk: 0 },
+    timerPlayerOpen: false,
     timerSize: 180
   };
   var state;
   try {
     state = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY) || '{}'));
   } catch (e) { state = Object.assign({}, defaults); }
-  state.counts = Object.assign({ date: todayKey(), timer: 0, mission: 0, walk: 0 }, state.counts || {});
-  if (state.counts.date !== todayKey()) state.counts = { date: todayKey(), timer: 0, mission: 0, walk: 0 };
 
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
@@ -87,6 +81,118 @@
     tone(783.99, 0.26, 0.9, 0.07);
     if (navigator.vibrate) navigator.vibrate([30, 60, 40]);
   }
+
+  // ── 완료 축하 (팡파레 + 콘페티 + 칭찬 카드) ──────────────
+  function toneAt(freq, at, dur, vol, type) {
+    var ctx = actx;
+    if (!ctx) return;
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type || 'sine';
+    o.frequency.value = freq;
+    o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.linearRampToValueAtTime(vol, at + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    o.start(at); o.stop(at + dur + 0.05);
+  }
+  function fanfare() {
+    audio();
+    var ctx = actx;
+    if (!ctx) return;
+    var t = ctx.currentTime + 0.02;
+    // 올라가는 아르페지오
+    [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) {
+      toneAt(f, t + i * 0.085, 0.5, 0.08, 'triangle');
+    });
+    // 받침음 + 마지막 화음
+    toneAt(261.63, t + 0.2, 1.2, 0.05, 'sine');
+    [1046.5, 1318.51, 1567.98].forEach(function (f) {
+      toneAt(f, t + 0.4, 1.1, 0.05, 'sine');
+    });
+    // 반짝이는 마무리
+    [2093, 2637, 3136, 2637].forEach(function (f, i) {
+      toneAt(f, t + 0.52 + i * 0.07, 0.32, 0.022, 'sine');
+    });
+    if (navigator.vibrate) navigator.vibrate([18, 40, 18, 40, 70]);
+  }
+
+  var celEl = $('#celebrate'), celText = $('#celebrateText'), fx = $('#fx');
+  var fxParts = [], fxCtx = null, fxRaf = 0, fxEnd = 0;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function sizeFx() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    fx.width = Math.floor(fx.clientWidth * dpr);
+    fx.height = Math.floor(fx.clientHeight * dpr);
+    fxCtx = fx.getContext('2d');
+    fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function burst() {
+    if (reduceMotion || !fxCtx) return;
+    var w = fx.clientWidth, h = fx.clientHeight;
+    var cols = ['#dd5f39', '#f0a35e', '#e8ce7a', '#7fb69a', '#e8a7b8', '#fff3e2'];
+    fxParts = [];
+    for (var i = 0; i < 140; i++) {
+      var a = Math.random() * Math.PI * 2, sp = 2.5 + Math.random() * 8;
+      fxParts.push({
+        x: w / 2 + (Math.random() - 0.5) * 40, y: h * 0.44,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 3.2,
+        w: 4 + Math.random() * 5, h: 6 + Math.random() * 8,
+        rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.32,
+        c: cols[Math.floor(Math.random() * cols.length)], life: 0
+      });
+    }
+    fxEnd = Date.now() + 3200;
+    if (!fxRaf) fxRaf = requestAnimationFrame(stepFx);
+  }
+  function stepFx() {
+    if (!fxCtx) { fxRaf = 0; return; }
+    var w = fx.clientWidth, h = fx.clientHeight, ctx = fxCtx;
+    ctx.clearRect(0, 0, w, h);
+    var alive = 0;
+    for (var i = 0; i < fxParts.length; i++) {
+      var p = fxParts[i];
+      p.life++;
+      p.vy += 0.17; p.vx *= 0.995;
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      if (p.y > h + 40) continue;
+      alive++;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.globalAlpha = Math.max(0, 1 - p.life / 200);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    if (alive && Date.now() < fxEnd) fxRaf = requestAnimationFrame(stepFx);
+    else { ctx.clearRect(0, 0, w, h); fxRaf = 0; }
+  }
+  function stopFx() {
+    if (fxRaf) cancelAnimationFrame(fxRaf);
+    fxRaf = 0;
+    if (fxCtx) fxCtx.clearRect(0, 0, fx.clientWidth, fx.clientHeight);
+  }
+  function celebrate(msg) {
+    fanfare();
+    celText.textContent = msg || D.praise[Math.floor(Math.random() * D.praise.length)];
+    celEl.hidden = false;
+    sizeFx();
+    celEl.classList.add('on');
+    burst();
+  }
+  function closeCelebrate() {
+    celEl.hidden = true;
+    celEl.classList.remove('on');
+    stopFx();
+  }
+  $('#celebrateClose').addEventListener('click', closeCelebrate);
+  celEl.addEventListener('click', function (e) {
+    if (!e.target.closest('.ccard')) closeCelebrate();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !celEl.hidden) closeCelebrate();
+  });
 
   // ── 토스트 ──────────────────────────────
   var toastEl = $('#toast'), toastTimer = null;
@@ -371,9 +477,32 @@
   function favActionLabel(a) {
     if (!a) return '지금 하기';
     if (a.type === 'tab') {
-      return { timer: '3분 타이머 열기', body: '몸풀기 열기', music: '음악 열기', walk: '산책 코스 열기' }[a.tab] || '열기';
+      return { timer: '3분 타이머 켜기', body: '몸풀기 열기', music: '음악 틀기' }[a.tab] || '열기';
     }
-    return '지금 하기';
+    if (a.type === 'move') return '이 동작 바로 시작';
+    if (a.type === 'song') return '이 곡 바로 틀기';
+    return '바로 열기';
+  }
+  function favInApp(a) { return !!a && (a.type === 'tab' || a.type === 'move' || a.type === 'song'); }
+  function runFavAction(a) {
+    if (!a) return;
+    if (a.type === 'tab') { goTab(a.tab); return; }
+    if (a.type === 'move') {
+      var mv = moveById(a.id);
+      if (!mv) return;
+      state.bodyFilter = mv.track === 'simple' ? 'simple' : 'stretch';
+      save();
+      goTab('body');
+      activateMove(a.id, true);
+      var el = document.getElementById('mv-' + a.id);
+      if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
+    }
+    if (a.type === 'song') {
+      var it = library().filter(function (m) { return m.id === a.id; })[0];
+      goTab('music');
+      if (it) { state.selectedId = it.id; state.mood = it.moods[0] || state.mood; save(); renderMoods(); renderMusic(); }
+    }
   }
   function renderFav() {
     var box = $('#favResult');
@@ -389,14 +518,18 @@
             (item.custom ? '<span class="tag">내가 추가</span>' : '') +
           '</div>' +
           '<h3>' + esc(item.title) + '</h3>' +
-          (item.action && item.action.type === 'tab'
-            ? '<button class="btn-primary accent" id="favGo">' + esc(favActionLabel(item.action)) + '</button>'
-            : '<a class="btn-primary accent" id="favGo" href="' + esc(item.action && item.action.url || '#') + '" target="_blank" rel="noopener">' + esc(favActionLabel(item.action)) + '</a>') +
+          '<div class="favbtns">' +
+            (favInApp(item.action)
+              ? '<button class="btn-primary accent" id="favGo">' + esc(favActionLabel(item.action)) + '</button>'
+              : '<a class="btn-primary accent" id="favGo" href="' + esc(item.action && item.action.url || '#') + '" target="_blank" rel="noopener">' + esc(favActionLabel(item.action)) + '</a>') +
+            '<button class="btn-outline slim" id="favDone">했음</button>' +
+          '</div>' +
         '</article>';
       var go = $('#favGo');
-      if (item.action && item.action.type === 'tab') {
-        go.addEventListener('click', function () { goTab(item.action.tab); });
+      if (favInApp(item.action)) {
+        go.addEventListener('click', function () { runFavAction(item.action); });
       }
+      $('#favDone').addEventListener('click', function () { celebrate(); });
     }
     renderFavList();
   }
@@ -416,7 +549,7 @@
       return '<button class="row" data-fav="' + esc(f.id) + '">' +
         '<span class="row-main">' +
           '<span class="row-title">' + esc(f.title) + '</span>' +
-          '<span class="row-meta">' + esc(f.meta || '') + (f.action && f.action.type === 'tab' ? ' · 앱 안에서' : ' · 링크') + '</span>' +
+          '<span class="row-meta">' + esc(f.meta || '') + (favInApp(f.action) ? ' · 앱 안에서' : ' · 링크') + '</span>' +
         '</span>' +
         (state.faveEdit
           ? '<span class="row-del" data-fdel="' + esc(f.id) + '">−</span>'
@@ -534,7 +667,6 @@
       html += D.simple.map(moveCard).join('');
     }
     $('#moveList').innerHTML = html;
-    $('#bodyCount').textContent = '오늘 몸풀기 ' + state.counts.mission + '번';
   }
 
   function moveCard(m) {
@@ -554,6 +686,9 @@
       '<h3>' + esc(m.name) + '</h3>' +
       '<p class="mv-good"><b>좋은 데</b>' + esc(m.good) + '</p>' +
       '<p class="mv-tip">' + esc(m.tip) + '</p>' +
+      (m.steps ? '<ol class="msteps">' + m.steps.map(function (st) {
+        return '<li>' + esc(st) + '</li>';
+      }).join('') + '</ol>' : '') +
       (active
         ? '<div class="bar"><i id="mvBar" style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i></div>' +
           '<div class="timerbtns">' +
@@ -562,7 +697,6 @@
                 : (body.remain > 0 && body.remain < m.d - 0.5) ? '계속' : '시작') + '</button>' +
             (body.done ? '' : '<button class="btn-outline slim" data-done="' + esc(m.id) + '">완료</button>') +
           '</div>' +
-          (body.praise ? '<div class="praise" style="margin-top:14px">' + esc(body.praise) + '</div>' : '') +
           '<button class="linkbtn center" data-close="1">접기</button>'
         : '<div class="mv-btns">' +
             '<button class="mv-go" data-start="' + esc(m.id) + '">시작</button>' +
@@ -610,7 +744,6 @@
             Math.max(0, Math.min(100, (1 - cur.remain / r.steps[cur.i].sec) * 100)) + '%"></i></div>'
         : '') +
       '<div class="timerbtns"' + (cur && !cur.done ? '' : ' style="margin-top:14px"') + '>' + btns + '</div>' +
-      (cur && cur.done && body.praise ? '<div class="praise" style="margin-top:14px">' + esc(body.praise) + '</div>' : '') +
     '</article>';
   }
 
@@ -653,11 +786,8 @@
     body.running = false;
     body.done = true;
     body.remain = 0;
-    body.praise = D.praise[Math.floor(Math.random() * D.praise.length)];
-    state.counts.mission += 1;
-    save(); chimeDone();
     if (currentTab === 'body') renderBody();
-    toast('하나 함 · 오늘 ' + state.counts.mission + '번');
+    celebrate();
   }
 
   function startRoutine(id) {
@@ -704,11 +834,8 @@
     routine.running = false;
     routine.done = true;
     routine.remain = 0;
-    body.praise = D.praise[Math.floor(Math.random() * D.praise.length)];
-    state.counts.mission += 1;
-    save(); chimeDone();
     if (currentTab === 'body') renderBody();
-    toast('코스 한 바퀴 끝');
+    celebrate();
   }
 
   $('#bodyRandom').addEventListener('click', function () {
@@ -772,11 +899,31 @@
     var r = s % 60;
     return m + ':' + (r < 10 ? '0' : '') + r;
   }
-  function timerPraise(msg) {
-    var el = $('#timerPraise');
-    if (!msg) { el.hidden = true; el.textContent = ''; return; }
-    el.hidden = false; el.textContent = msg;
+  // 타이머 화면에서 바로 듣기 (스포티파이 임베드 펼치기 / 앱으로 열기)
+  var timerPlayerId = null, timerPlayerOpen = false;
+  function closeTimerEmbed() {
+    timerPlayerOpen = false;
+    var box = $('#timerEmbed');
+    if (!box) return;
+    box.hidden = true;
+    box.innerHTML = '';
+    $('#timerPlay').textContent = '▶ 재생';
   }
+  function openTimerEmbed() {
+    var sel = library().filter(function (m) { return m.id === state.selectedId; })[0];
+    if (!sel) { goTab('music'); return; }
+    timerPlayerOpen = true;
+    var box = $('#timerEmbed');
+    box.innerHTML = '<iframe src="' + spEmbed(sel) + '&autoplay=1" height="152" frameborder="0" ' +
+      'allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" ' +
+      'loading="lazy" title="스포티파이 플레이어"></iframe>';
+    box.hidden = false;
+    $('#timerPlay').textContent = '▼ 접기';
+  }
+  $('#timerPlay').addEventListener('click', function () {
+    if (timerPlayerOpen) closeTimerEmbed(); else openTimerEmbed();
+  });
+
   function renderTimer() {
     var size = state.timerSize;
     if (!timer.running && timer.remain > size) timer.remain = size;
@@ -789,13 +936,17 @@
     });
     var sel = library().filter(function (m) { return m.id === state.selectedId; })[0];
     $('#timerMusicName').textContent = sel ? sel.title : '아직 안 고름';
-    $('#timerCount').textContent = '오늘 타이머 ' + state.counts.timer + '번';
+    $('#timerMusicRow').hidden = !sel;
+    if (sel) $('#timerAppLink').href = spPage(sel);
+    if (timerPlayerId !== (sel ? sel.id : null)) {
+      timerPlayerId = sel ? sel.id : null;
+      closeTimerEmbed();
+    }
   }
   function switchSize(sec) {
     state.timerSize = sec;
     timer.running = false;
     timer.remain = sec;
-    timerPraise(null);
     save(); renderTimer();
   }
   $('#timerSeg').addEventListener('click', function (e) {
@@ -818,7 +969,6 @@
   $('#timerReset').addEventListener('click', function () {
     timer.running = false;
     timer.remain = state.timerSize;
-    timerPraise(null);
     renderTimer();
   });
 
@@ -886,7 +1036,6 @@
     if (!pool.length) { toast('지금 시간엔 코스가 없음'); return; }
     var c = pickRandom(pool, state.lastCourseId);
     state.lastCourseId = c.id;
-    state.counts.walk += 1;
     save(); renderWalk();
   });
 
@@ -898,10 +1047,7 @@
       if (timer.remain <= 0) {
         timer.running = false;
         timer.remain = 0;
-        state.counts.timer += 1;
-        save();
-        timerPraise(D.timerDone[Math.floor(Math.random() * D.timerDone.length)]);
-        chimeDone();
+        celebrate();
       }
       if (currentTab === 'timer') renderTimer();
     }

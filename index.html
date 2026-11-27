@@ -11,15 +11,16 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="시동">
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="styles.css?v=20261127g">
+<link rel="apple-touch-icon" href="assets/dachshund-180.png">
+<link rel="icon" href="assets/dachshund.png" sizes="512x512" type="image/png">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="stylesheet" href="styles.css?v=20261127i">
 </head>
 <body>
 <div class="app">
 
   <header class="top">
-    <div class="brand">시동</div>
+    <div class="brand"><img class="brand-dog" src="assets/dachshund-face.png" alt=""><span>시동</span></div>
     <button class="live" id="liveChip" hidden><span id="liveLabel">타이머</span> <span id="liveTime">3:00</span></button>
   </header>
 
@@ -47,7 +48,7 @@
     <!-- 2. 좋아하는 것 뽑기 -->
     <section class="screen" id="screen-random">
       <h1>뭐 할까</h1>
-      <p class="sub">평소 좋아하는 것 중에 하나. 뽑으면 바로 할 수 있게 연결돼 있음.</p>
+      <p class="sub">집 안에서 바로 할 수 있는 것만. 뽑으면 그 자리에서 시작됨.</p>
 
       <div id="favResult" class="stack"></div>
       <button class="btn-primary big" id="favRoll">하나 뽑기</button>
@@ -76,7 +77,6 @@
 
       <div id="routineBox" class="stack"></div>
       <div id="moveList" class="stack"></div>
-      <div id="bodyCount" class="countline"></div>
     </section>
 
     <!-- 4. 3분 타이머 -->
@@ -99,21 +99,23 @@
         </div>
       </div>
 
-      <div id="timerPraise" class="praise" hidden></div>
-
       <div class="mini">
         <div class="mini-label">같이 들을 음악</div>
         <div class="mini-row">
           <span id="timerMusicName">아직 안 고름</span>
           <button class="linkbtn" data-goto="music">고르기</button>
         </div>
+        <div class="mini-row mini-actions" id="timerMusicRow" hidden>
+          <button class="playbtn" id="timerPlay">▶ 재생</button>
+          <a class="linkbtn" id="timerAppLink" target="_blank" rel="noopener">스포티파이 앱으로</a>
+        </div>
+        <div class="embed" id="timerEmbed" hidden></div>
       </div>
-      <div id="timerCount" class="countline"></div>
     </section>
 
     <!-- 5. 산책 -->
     <section class="screen" id="screen-walk">
-      <h1>20~30분 산책</h1>
+      <h1>동네 한 바퀴</h1>
       <p class="sub" id="walkSub">지금 시간대에 맞는 코스 하나. 검색 안 해도 됨.</p>
 
       <div id="walkResult" class="stack"></div>
@@ -188,9 +190,8 @@
     <select id="fAction">
       <option value="link">링크 열기</option>
       <option value="timer">3분 타이머</option>
-      <option value="body">몸풀기 미션</option>
+      <option value="body">몸풀기 탭</option>
       <option value="music">음악 탭</option>
-      <option value="walk">산책 코스</option>
     </select>
   </label>
   <label class="field" id="fUrlWrap">
@@ -201,9 +202,20 @@
   <button class="btn-primary" id="fSave">추가</button>
 </div>
 
+<div class="celebrate" id="celebrate" hidden>
+  <canvas id="fx"></canvas>
+  <div class="cwrap">
+    <div class="ccard">
+      <img class="cdog" src="assets/dachshund.png" alt="">
+      <p class="cpraise" id="celebrateText"></p>
+      <button class="cclose" id="celebrateClose">닫기</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast" hidden></div>
 
-<script src="data.js?v=20261127g"></script>
-<script src="app.js?v=20261127g"></script>
+<script src="data.js?v=20261127i"></script>
+<script src="app.js?v=20261127i"></script>
 </body>
 </html>
