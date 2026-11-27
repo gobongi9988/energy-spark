@@ -4,15 +4,16 @@
 window.SIDONG_ART = {
   // 1. 목·승모근 — 머리를 오른쪽 어깨로, 손은 머리 위로
   s1: '<svg class="art" viewBox="0 0 320 160" role="img" aria-label="한 손을 머리에 얹고 머리를 옆으로 기울이는 자세">' +
-      '<path class="g" d="M160 26v26"/>' +
-      '<g transform="rotate(-13 150 74)"><circle class="head" cx="150" cy="74" r="12"/>' +
-      '<path class="f" d="M137 78c-4 2-4 6 0 8"/></g>' +
-      '<path class="b" d="M154 86l4 12"/>' +
-      '<path class="b" d="M108 112c10-14 28-20 52-20s42 6 52 20"/>' +
-      '<path class="b" d="M112 112l-10-26"/>' +
-      '<path class="b" d="M102 86c2-16 14-28 30-32"/>' +
-      '<path class="b" d="M130 54c6-4 14-2 17 4"/>' +
-      '<path class="a" d="M132 46c-20 6-28 22-26 38" marker-end="url(#ah)"/>' +
+      '<path class="g" d="M160 30v36"/>' +
+      '<circle class="head" cx="146" cy="64" r="13"/>' +
+      '<path class="f" d="M133 68c-4 2-4 6 0 8"/>' +
+      '<path class="b" d="M152 76l4 12"/>' +
+      '<path class="b" d="M110 98c14-8 34-10 50-6 16-4 36-2 50 6"/>' +
+      '<path class="b" d="M110 100c-2 12 2 22 10 28M210 100c2 12-2 22-10 28"/>' +
+      '<path class="b" d="M112 100l-14-18"/>' +
+      '<path class="b" d="M98 82c4-12 16-22 32-24"/>' +
+      '<path class="b" d="M130 58c6-2 11 0 13 6"/>' +
+      '<path class="a" d="M168 44c-10-2-20 2-26 10" marker-end="url(#ah)"/>' +
       '</svg>',
 
   // 2. 고양이-소 — 등 위로 / 배 아래로
@@ -35,14 +36,16 @@ window.SIDONG_ART = {
   // 3. 아기 자세 — 무릎 꿇고 상체 숙이기
   s3: '<svg class="art" viewBox="0 0 320 160" role="img" aria-label="무릎 꿇고 앉아 상체를 앞으로 숙이는 아기 자세">' +
       '<path class="floor" d="M36 132h248"/>' +
-      '<path class="b" d="M204 106c-30 2-56 8-64 12"/>' +
-      '<path class="b" d="M140 118l-18 4"/>' +
-      '<circle class="head" cx="112" cy="123" r="9"/>' +
-      '<path class="b" d="M143 121c-22 3-44 7-58 9"/>' +
-      '<path class="b" d="M204 106l-28 26"/>' +
+      '<circle class="head" cx="114" cy="120" r="9"/>' +
+      '<path class="b" d="M126 118l8-4"/>' +
+      '<path class="b" d="M134 114c26-6 52-12 72-18"/>' +
+      '<circle class="head" cx="206" cy="96" r="5"/>' +
+      '<path class="b" d="M206 96l-30 36"/>' +
+      '<circle class="head" cx="176" cy="132" r="4"/>' +
       '<path class="b" d="M176 132h34"/>' +
       '<path class="b" d="M210 132l2-6"/>' +
-      '<path class="a" d="M212 100c6 8 8 16 6 24" marker-end="url(#ah)"/>' +
+      '<path class="b" d="M138 116c-18 6-38 12-52 15"/>' +
+      '<path class="a" d="M218 90c8 10 10 22 4 34" marker-end="url(#ah)"/>' +
       '<text class="sm" x="160" y="152" text-anchor="middle">엉덩이를 발뒤꿈치 쪽으로, 이마는 바닥에</text>' +
       '</svg>',
 
@@ -59,14 +62,13 @@ window.SIDONG_ART = {
   // 5. 가슴 열기 깍지 — 어깨 뒤로
   s5: '<svg class="art" viewBox="0 0 320 160" role="img" aria-label="등 뒤에서 손을 깍지 끼고 어깨를 뒤로 젖히는 자세">' +
       '<circle class="head" cx="160" cy="42" r="11"/>' +
-      '<path class="b" d="M160 53v10"/>' +
-      '<path class="b" d="M136 68c8-5 40-5 48 0"/>' +
-      '<path class="b" d="M136 68l4 36M184 68l-4 36M140 104h40"/>' +
-      '<path class="b" d="M138 70c-12 14-6 28 12 34"/>' +
-      '<path class="b" d="M182 70c12 14 6 28-12 34"/>' +
-      '<path class="head" d="M153 104h14v5h-14z"/>' +
-      '<path class="a" d="M134 62l-18-10" marker-end="url(#ah)"/>' +
-      '<path class="a" d="M186 62l18-10" marker-end="url(#ah)"/>' +
+      '<path class="b" d="M160 53v9"/>' +
+      '<path class="b" d="M136 66c8-5 40-5 48 0"/>' +
+      '<path class="b" d="M136 66l4 34M184 66l-4 34M140 100h40"/>' +
+      '<path class="f" d="M160 68v24"/>' +
+      '<rect class="head" x="151" y="93" width="18" height="7" rx="3.5"/>' +
+      '<path class="a" d="M134 60l-18-8" marker-end="url(#ah)"/>' +
+      '<path class="a" d="M186 60l18-8" marker-end="url(#ah)"/>' +
       '<text class="sm" x="160" y="140" text-anchor="middle">깍지 낀 손은 등 뒤로, 어깨는 뒤로</text>' +
       '</svg>',
 
@@ -103,15 +105,15 @@ window.SIDONG_ART = {
   // 8. 나비 자세
   s8: '<svg class="art" viewBox="0 0 320 160" role="img" aria-label="앉아서 발바닥을 붙이고 무릎을 옆으로 벌리는 나비 자세">' +
       '<path class="floor" d="M36 136h248"/>' +
-      '<circle class="head" cx="160" cy="38" r="11"/>' +
-      '<path class="b" d="M160 49v9"/>' +
-      '<path class="b" d="M138 62c6-4 38-4 44 0"/>' +
-      '<path class="b" d="M138 62l6 34M182 62l-6 34M144 96h32"/>' +
-      '<path class="b" d="M158 100l-46 4M162 100l46 4"/>' +
-      '<path class="b" d="M112 104l38 20M208 104l-38 20"/>' +
-      '<path class="b" d="M150 124h20"/>' +
-      '<path class="a" d="M104 94c-6 8-8 16-4 24" marker-end="url(#ah)"/>' +
-      '<path class="a" d="M216 94c6 8 8 16 4 24" marker-end="url(#ah)"/>' +
+      '<circle class="head" cx="160" cy="34" r="10"/>' +
+      '<path class="b" d="M160 44v8"/>' +
+      '<path class="b" d="M142 54c6-4 30-4 36 0"/>' +
+      '<path class="b" d="M142 54l4 38M178 54l-4 38M146 92h28"/>' +
+      '<path class="b" d="M158 94l-42 18M162 94l42 18"/>' +
+      '<path class="b" d="M116 112l38 14M204 112l-38 14"/>' +
+      '<path class="b" d="M154 126h12"/>' +
+      '<path class="a" d="M108 104c-6 8-8 16-4 24" marker-end="url(#ah)"/>' +
+      '<path class="a" d="M212 104c6 8 8 16 4 24" marker-end="url(#ah)"/>' +
       '<text class="sm" x="160" y="154" text-anchor="middle">발바닥 붙이고, 무릎은 손으로 누르지 않기</text>' +
       '</svg>',
 
@@ -134,15 +136,14 @@ window.SIDONG_ART = {
   // 10. 스탠딩 사이드 스트레치
   s10: '<svg class="art" viewBox="0 0 320 160" role="img" aria-label="한 팔을 머리 위로 뻗어 옆으로 기울이는 사이드 스트레치">' +
       '<path class="floor" d="M36 136h248"/>' +
-      '<circle class="head" cx="150" cy="52" r="11"/>' +
-      '<path class="b" d="M154 62l4 10"/>' +
-      '<path class="b" d="M146 72c10-4 22-4 30 2"/>' +
-      '<path class="b" d="M146 72l-4 34M176 74l4 32M142 106h38"/>' +
-      '<path class="b" d="M148 108l-2 26M174 108l2 26"/>' +
-      '<path class="b" d="M176 74c4-18-8-36-30-34"/>' +
-      '<path class="b" d="M146 40l-6 4"/>' +
-      '<path class="b" d="M142 74c-12 14-14 24-12 34"/>' +
-      '<path class="a" d="M132 26l-18 6" marker-end="url(#ah)"/>' +
+      '<circle class="head" cx="144" cy="56" r="11"/>' +
+      '<path class="b" d="M160 106c0-12-8-22-14-28"/>' +
+      '<path class="b" d="M134 80l24-4"/>' +
+      '<path class="b" d="M136 82c-6 10-10 20-12 28"/>' +
+      '<path class="b" d="M156 78c6-26-6-44-38-44"/>' +
+      '<path class="b" d="M118 34l-6 6"/>' +
+      '<path class="b" d="M150 108l-4 28M170 108l6 28M148 106h22"/>' +
+      '<path class="a" d="M112 24l-18 8" marker-end="url(#ah)"/>' +
       '<text class="sm" x="160" y="154" text-anchor="middle">골반은 제자리에, 발은 어깨 너비</text>' +
       '</svg>',
 
