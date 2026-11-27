@@ -4,16 +4,16 @@
 window.SIDONG_ART = {
   // 1. 목·승모근 — 머리를 오른쪽 어깨로, 손은 머리 위로
   s1: '<svg class="art" viewBox="0 0 320 160" role="img" aria-label="한 손을 머리에 얹고 머리를 옆으로 기울이는 자세">' +
-      '<path class="g" d="M160 30v36"/>' +
-      '<circle class="head" cx="146" cy="64" r="13"/>' +
-      '<path class="f" d="M133 68c-4 2-4 6 0 8"/>' +
-      '<path class="b" d="M152 76l4 12"/>' +
-      '<path class="b" d="M110 98c14-8 34-10 50-6 16-4 36-2 50 6"/>' +
-      '<path class="b" d="M110 100c-2 12 2 22 10 28M210 100c2 12-2 22-10 28"/>' +
-      '<path class="b" d="M112 100l-14-18"/>' +
-      '<path class="b" d="M98 82c4-12 16-22 32-24"/>' +
-      '<path class="b" d="M130 58c6-2 11 0 13 6"/>' +
-      '<path class="a" d="M168 44c-10-2-20 2-26 10" marker-end="url(#ah)"/>' +
+      '<path class="g" d="M166 30v34"/>' +
+      '<g transform="rotate(-12 150 68)"><circle class="head" cx="150" cy="68" r="13"/>' +
+      '<path class="f" d="M136 72c-4 2-4 6 0 8"/></g>' +
+      '<path class="b" d="M156 80l2 12"/>' +
+      '<path class="b" d="M116 100c12-8 30-10 44-8 14-2 32 0 44 8"/>' +
+      '<path class="b" d="M116 102c-2 12 2 22 10 28M204 102c2 12-2 22-10 28"/>' +
+      '<path class="b" d="M120 100l-10-26"/>' +
+      '<path class="b" d="M110 74c6-16 22-24 38-22"/>' +
+      '<path class="b" d="M142 50h10"/>' +
+      '<path class="a" d="M176 44c-6-6-14-8-22-6" marker-end="url(#ah)"/>' +
       '</svg>',
 
   // 2. 고양이-소 — 등 위로 / 배 아래로
@@ -64,9 +64,8 @@ window.SIDONG_ART = {
       '<circle class="head" cx="160" cy="42" r="11"/>' +
       '<path class="b" d="M160 53v9"/>' +
       '<path class="b" d="M136 66c8-5 40-5 48 0"/>' +
-      '<path class="b" d="M136 66l4 34M184 66l-4 34M140 100h40"/>' +
-      '<path class="f" d="M160 68v24"/>' +
-      '<rect class="head" x="151" y="93" width="18" height="7" rx="3.5"/>' +
+      '<path class="b" d="M136 66l4 34M184 66l-4 34"/>' +
+      '<rect class="head" x="149" y="101" width="22" height="8" rx="4"/>' +
       '<path class="a" d="M134 60l-18-8" marker-end="url(#ah)"/>' +
       '<path class="a" d="M186 60l18-8" marker-end="url(#ah)"/>' +
       '<text class="sm" x="160" y="140" text-anchor="middle">깍지 낀 손은 등 뒤로, 어깨는 뒤로</text>' +
