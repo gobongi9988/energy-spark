@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>시동</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="description" content="기분별 음악, 좋아하는 것 뽑기, 몸풀기, 3분 타이머, 동네 산책 코스.">
+<meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="시동">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="brand">시동</div>
+    <button class="live" id="liveChip" hidden><span id="liveLabel">타이머</span> <span id="liveTime">3:00</span></button>
+  </header>
+
+  <main>
+    <!-- 1. 기분별 음악 -->
+    <section class="screen active" id="screen-music">
+      <h1>지금 기분, 뭐임?</h1>
+      <p class="sub">하나 고르면 노래 나옴. 스포티파이는 앱으로 바로 열림.</p>
+
+      <div class="chips" id="moodChips"></div>
+      <div id="musicResult" class="stack"></div>
+
+      <div class="section-head">
+        <h2>내 목록</h2>
+        <button class="linkbtn" id="musicEditBtn">편집</button>
+      </div>
+      <div id="musicList" class="list"></div>
+      <button class="btn-outline" id="addMusicBtn">+ 노래·플레이리스트 추가</button>
+      <button class="linkbtn center" id="musicRestoreBtn" hidden>기본 목록 되돌리기</button>
+    </section>
+
+    <!-- 2. 좋아하는 것 뽑기 -->
+    <section class="screen" id="screen-random">
+      <h1>뭐 할까</h1>
+      <p class="sub">평소 좋아하는 것 중에 하나. 뽑으면 바로 할 수 있게 연결돼 있음.</p>
+
+      <div id="favResult" class="stack"></div>
+      <button class="btn-primary big" id="favRoll">하나 뽑기</button>
+
+      <div class="section-head">
+        <h2>내 목록</h2>
+        <button class="linkbtn" id="favEditBtn">편집</button>
+      </div>
+      <div id="favList" class="list"></div>
+      <button class="btn-outline" id="addFavBtn">+ 항목 추가</button>
+      <button class="linkbtn center" id="favRestoreBtn" hidden>기본 목록 되돌리기</button>
+    </section>
+
+    <!-- 3. 몸 움직이기 -->
+    <section class="screen" id="screen-body">
+      <h1>몸부터 깨우기</h1>
+      <p class="sub">1분도 안 걸리는 것만 모아둠. 하나만 하고 끝내도 됨.</p>
+
+      <div id="missionCard" class="stack"></div>
+      <div id="bodyCount" class="countline"></div>
+    </section>
+
+    <!-- 4. 3분 타이머 -->
+    <section class="screen" id="screen-timer">
+      <h1>일단 3분만</h1>
+      <p class="sub">1분·3분·5분. 시작 버튼만 누르면 됨.</p>
+
+      <div class="seg" id="timerSeg">
+        <button data-min="1">1분</button>
+        <button data-min="3" class="on">3분</button>
+        <button data-min="5">5분</button>
+      </div>
+
+      <div class="timercard">
+        <div class="digits" id="timerDigits">3:00</div>
+        <div class="bar"><i id="timerBar" style="width:0%"></i></div>
+        <div class="timerbtns">
+          <button class="btn-primary" id="timerStart">시작</button>
+          <button class="btn-outline slim" id="timerReset">리셋</button>
+        </div>
+      </div>
+
+      <div id="timerPraise" class="praise" hidden></div>
+
+      <div class="mini">
+        <div class="mini-label">같이 들을 음악</div>
+        <div class="mini-row">
+          <span id="timerMusicName">아직 안 고름</span>
+          <button class="linkbtn" data-goto="music">고르기</button>
+        </div>
+      </div>
+      <div id="timerCount" class="countline"></div>
+    </section>
+
+    <!-- 5. 산책 -->
+    <section class="screen" id="screen-walk">
+      <h1>20~30분 산책</h1>
+      <p class="sub" id="walkSub">지금 시간대에 맞는 코스 하나. 검색 안 해도 됨.</p>
+
+      <div id="walkResult" class="stack"></div>
+      <button class="btn-primary big" id="walkRoll">코스 뽑기</button>
+      <p class="foot">상계주공3단지(동일로215길 48) 기준 · 지도 앱으로 바로 열림</p>
+    </section>
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab on" data-tab="music">
+      <svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
+      <span>음악</span>
+    </button>
+    <button class="tab" data-tab="random">
+      <svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+      <span>뽑기</span>
+    </button>
+    <button class="tab" data-tab="body">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.2"/><path d="M12 7v7"/><path d="M6 10.5 12 9l6 1.5"/><path d="M9 21l3-7 3 7"/></svg>
+      <span>몸풀기</span>
+    </button>
+    <button class="tab" data-tab="timer">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.5 2"/><path d="M9 2.5h6"/></svg>
+      <span>3분</span>
+    </button>
+    <button class="tab" data-tab="walk">
+      <svg viewBox="0 0 24 24"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+      <span>산책</span>
+    </button>
+  </nav>
+</div>
+
+<!-- 시트 -->
+<div class="backdrop" id="backdrop"></div>
+
+<div class="sheet" id="sheetMusic">
+  <div class="sheet-head">
+    <h2>노래 추가</h2>
+    <button class="x" data-close>닫기</button>
+  </div>
+  <label class="field">
+    <span>스포티파이 링크</span>
+    <input id="mLink" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="open.spotify.com/track/...">
+  </label>
+  <label class="field">
+    <span>이름 (비우면 스포티파이 제목 그대로)</span>
+    <input id="mName" placeholder="예: 새벽에 듣는 것">
+  </label>
+  <div class="field">
+    <span>어떤 기분에</span>
+    <div class="chips small" id="mMoodChips"></div>
+  </div>
+  <p class="hint" id="mHint"></p>
+  <button class="btn-primary" id="mSave">추가</button>
+</div>
+
+<div class="sheet" id="sheetFav">
+  <div class="sheet-head">
+    <h2>항목 추가</h2>
+    <button class="x" data-close>닫기</button>
+  </div>
+  <label class="field">
+    <span>무엇</span>
+    <input id="fName" placeholder="예: 동네 빵집 들르기">
+  </label>
+  <label class="field">
+    <span>걸리는 시간 (선택)</span>
+    <input id="fMeta" placeholder="예: 10분">
+  </label>
+  <label class="field">
+    <span>누르면</span>
+    <select id="fAction">
+      <option value="link">링크 열기</option>
+      <option value="timer">3분 타이머</option>
+      <option value="body">몸풀기 미션</option>
+      <option value="music">음악 탭</option>
+      <option value="walk">산책 코스</option>
+    </select>
+  </label>
+  <label class="field" id="fUrlWrap">
+    <span>링크</span>
+    <input id="fUrl" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://map.kakao.com/...">
+  </label>
+  <p class="hint" id="fHint"></p>
+  <button class="btn-primary" id="fSave">추가</button>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
