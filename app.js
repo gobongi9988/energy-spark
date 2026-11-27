@@ -274,6 +274,13 @@
     if (!auto) player.userCollapsed = !player.open;
     dockEl.classList.toggle('open', player.open);
     document.body.classList.toggle('dock-open', player.open);
+    var ex = $('#dockExpand');
+    if (ex) {
+      ex.setAttribute('aria-label', player.open ? '영상 접기' : '영상 펼치기');
+      ex.innerHTML = player.open
+        ? '<svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>'
+        : '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
+    }
   }
   function loadTrack(item, autoplay, open, force) {
     if (!item) return;
