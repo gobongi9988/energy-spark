@@ -2,7 +2,7 @@
 
 기분 전환·일상 시동용 모바일 웹앱. 빌드 없이 GitHub Pages에서 바로 돈다.
 
-- **음악** — 기분 5개 중 하나를 고르면 스포티파이 플레이리스트 매칭. '스포티파이에서 바로 열기' 버튼(앱 유니버설 링크) + 화면 안 임베드 플레이어. 링크를 붙여넣어 직접 추가·삭제(localStorage).
+- **음악** — 기분 5개 중 하나를 고르면 스포티파이 플레이리스트·곡 매칭(사용자 '애롱' 라이브러리 12개: 나의20대, With Me, 홍콩영화, 라틴 재즈 보사노바 삼바, 일렉트로닉, So Danco Samba, 주말이형, ㅇ, Hypnotize, I Don't Know Why, This Is SE SO NEON, 캐롤). '스포티파이에서 바로 열기' 버튼(앱 유니버설 링크) + iOS에서 spotify: URI 링크 + 화면 안 임베드 플레이어. 링크를 붙여넣어 직접 추가·삭제(localStorage).
 - **뽑기** — 좋아하는 것 목록에서 하나 뽑고, 바로 실행(지도·링크·타이머·몸풀기·음악). 직접 추가·삭제.
 - **몸풀기** — 1분 안쪽 미션 12개. 완료하면 담백한 한 줄.
 - **3분** — 1·3·5분 타이머, Web Audio 차임벨, 완료 카운트.
@@ -16,3 +16,14 @@
 - `icon.png`, `icon.svg`
 
 배포: https://gobongi9988.github.io/energy-spark/
+
+## 배포 방식 (중요)
+Pages는 `gh-pages` 브랜치를 서빙한다. 소스는 `main`에 두고, 수정 후에는 두 브랜치를 모두 밀어야 사이트가 갱신된다.
+
+```
+git push origin main
+git branch -f gh-pages main && git push origin gh-pages
+```
+
+정적 파일 캐시 때문에 `index.html`의 `?v=` 값을 바꿔 주면 즉시 반영된다.
+(GitHub App 권한상 Pages 설정 API는 막혀 있어, gh-pages 브랜치 푸시로 자동 게시됐다.)
