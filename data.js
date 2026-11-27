@@ -63,10 +63,10 @@ window.SIDONG = {
 
   // 좋아하는 것 — action: link(지도·사이트) 또는 이 앱의 탭
   favorites: [
-    { id: 'f1',  title: '당현천 10분 걷기',        meta: '15분',  action: { type: 'link', url: 'https://map.kakao.com/link/search/%EB%8B%B9%ED%98%84%EC%B2%9C%EA%B7%BC%EB%A6%B0%EA%B3%B5%EC%9B%90' } },
+    { id: 'f1',  title: '당현천 물길 보기',          meta: '20분',  action: { type: 'link', url: 'https://map.kakao.com/link/search/%EB%8B%B9%ED%98%84%EC%B2%9C%EA%B7%BC%EB%A6%B0%EA%B3%B5%EC%9B%90' } },
     { id: 'f2',  title: '편의점에서 아이스크림 하나', meta: '5분',   action: { type: 'link', url: 'https://map.kakao.com/link/search/GS25%20%EC%83%81%EA%B3%84%ED%81%AC%EB%A1%9C%EB%B0%94%EC%A0%90' } },
     { id: 'f3',  title: '헌책방에서 책등만 훑기',     meta: '10분',  action: { type: 'link', url: 'https://map.kakao.com/link/search/%EC%95%8C%EB%9D%BC%EB%94%98%EC%A4%91%EA%B3%A0%EC%84%9C%EC%A0%90%20%EB%85%B8%EC%9B%90%EC%97%AD%EC%A0%90' } },
-    { id: 'f4',  title: '노원문고 신간 코너',         meta: '10분',  action: { type: 'link', url: 'https://map.kakao.com/link/search/%EB%85%B8%EC%9B%90%EB%AC%B8%EA%B3%A0%20%EB%B3%B8%EC%A0%90' } },
+    { id: 'f4',  title: '노원문고 신간 코너',         meta: '15분',  action: { type: 'link', url: 'https://map.kakao.com/link/search/%EB%85%B8%EC%9B%90%EB%AC%B8%EA%B3%A0%20%EB%B3%B8%EC%A0%90' } },
     { id: 'f5',  title: '사진미술관 들르기',          meta: '25분',  action: { type: 'link', url: 'https://map.kakao.com/link/search/%EC%84%9C%EC%9A%B8%EC%8B%9C%EB%A6%BD%EC%82%AC%EC%A7%84%EB%AF%B8%EC%88%A0%EA%B4%80' } },
     { id: 'f6',  title: '책상 위만 정리',             meta: '3분',   action: { type: 'tab', tab: 'timer' } },
     { id: 'f7',  title: '몸풀기 하나',                meta: '1분',   action: { type: 'tab', tab: 'body' } },
