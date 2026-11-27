@@ -247,7 +247,7 @@
   }
 
   // ── 유튜브 플레이어 (하나만 두고 탭을 바꿔도 안 부숨) ──────────
-  var player = { itemId: null, videoId: null, frame: null, open: false, playing: false, userCollapsed: false };
+  var player = { itemId: null, videoId: null, frame: null, open: false, playing: false, started: false, userCollapsed: false };
   var dockEl = $('#dock');
 
   function ytCmd(func, args) {
@@ -291,6 +291,7 @@
     player.itemId = item.id;
     player.videoId = item.yt;
     player.playing = !!autoplay;
+    player.started = !!autoplay;
     var box = $('#dockVideo');
     box.innerHTML = '';
     var f = document.createElement('iframe');
@@ -306,7 +307,7 @@
     renderMusic(); renderTimer();
   }
   function closePlayer() {
-    player.itemId = null; player.videoId = null; player.frame = null; player.playing = false;
+    player.itemId = null; player.videoId = null; player.frame = null; player.playing = false; player.started = false;
     $('#dockVideo').innerHTML = '';
     dockEl.hidden = true;
     dockEl.classList.remove('open');
@@ -326,6 +327,7 @@
     if (!item.yt) { toast('이 곡은 앱에서 틀 수 있는 영상이 없음'); return; }
     if (player.itemId === item.id && player.frame) {
       if (player.playing) { ytCmd('pauseVideo'); setPlaying(false); }
+      else if (player.started) { ytCmd('playVideo'); setPlaying(true); }
       else { loadTrack(item, true, open, true); }
       return;
     }
@@ -401,8 +403,10 @@
         (item.note ? '<p class="note">' + esc(item.note) + '</p>' : '') +
         (item.yt
           ? '<button class="btn-primary" data-play="' + esc(item.id) + '">' +
-              (player.itemId === item.id
-                ? (player.playing ? '❚❚ 잠깐 멈추기' : '▶ 이어서 재생')
+              (player.itemId === item.id && player.started
+                ? (player.playing
+                    ? '<svg viewBox="0 0 24 24"><path d="M9 5.5v13M15 5.5v13"/></svg>잠깐 멈추기'
+                    : '▶ 이어서 재생')
                 : '▶ 유튜브로 듣기') + '</button>' +
             '<p class="playerhint">유튜브로 전곡 재생 · 다른 탭 가도 안 끊김</p>' +
             '<div class="applink"><a class="linkbtn tiny" href="' + spLink(item) + '" target="_blank" rel="noopener">스포티파이에서 열기</a></div>'
@@ -1055,7 +1059,7 @@
     var tl = $('#timerListen'), al = $('#timerAppLink');
     if (tl) {
       tl.hidden = !sel;
-      if (sel) tl.textContent = (player.itemId === sel.id && player.playing) ? '❚❚ 잠깐 멈추기' : '▶ 이 곡 틀기';
+      if (sel) tl.textContent = (player.itemId === sel.id && player.playing) ? '잠깐 멈추기' : (player.itemId === sel.id && player.started ? '▶ 이어서 재생' : '▶ 이 곡 틀기');
     }
     if (al) {
       al.hidden = !sel;
