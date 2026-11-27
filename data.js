@@ -8,7 +8,7 @@ window.SIDONG = {
     { key: 'blank', label: '멍때리고 싶어' }
   ],
 
-  // 음악 풀 — 좋아요 표시한 곡 211곡 중 중복 2곡 제외 209곡(2026-11-27 수집) + 내 플레이리스트 9개
+  // 음악 풀 — 좋아요 표시한 곡 211곡 중 같은 곡 중복 3건 제외 208곡(2026-11-27 수집) + 내 플레이리스트 9개
   // 추천곡 10곡은 취향 결에 맞춰 새로 골라 open.spotify.com/oembed 로 제목 확인함 (reco: true)
   music: [
     { id: 'm-20s',    title: '나의20대',                        type: 'playlist', sid: '6CItS6KJaJH7PMgzWq3IHS', genre: '내 플리',   moods: ['low'],           note: '20대에 들은 것들. 지금 들어도 그대로임.' },
