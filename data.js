@@ -295,26 +295,27 @@ window.SIDONG = {
     '이 정도면 오늘의 나한테 칭찬 한 줄 남겨도 됨.'
   ],
 
-  // 좋아하는 것 — 전부 집 안에서/지금 바로. action: tab(앱 탭) · move(몸풀기 동작 바로 시작) · song(이 곡 바로) · link(콘텐츠)
+  // 좋아하는 것 — 전부 집 안에서/지금 바로. action: tab(앱 탭) · move(몸풀기 동작 열기) · song(이 곡 바로) · link(콘텐츠)
+  // 몸풀기 동작(move)에는 걸리는 시간(meta)을 붙이지 않는다 — 2026-11-28 사용자 요청으로 n분 표기 제거
   // 지도·장소 링크는 넣지 않음(장소는 '산책' 탭 몫).
   favorites: [
     { id: 'f21', title: '좋아하는 노래 한 곡 틀기',    meta: '3분',     action: { type: 'tab', tab: 'music' } },
     { id: 'f22', title: '새소년 라이브 영상 하나',      meta: '5분',     action: { type: 'link', url: 'https://www.youtube.com/results?search_query=%EC%83%88%EC%86%8C%EB%85%84+live' } },
-    { id: 'f23', title: '따뜻한 차 내려 천천히 마시기', meta: '3분', action: { type: 'move', id: 'b2' } },
-    { id: 'f24', title: '눈 감고 창밖 멍때리기',        meta: '5분', action: { type: 'move', id: 'b15' } },
-    { id: 'f25', title: '아기 자세 30초씩 두 번',       meta: '1분 30초', action: { type: 'move', id: 's3' } },
-    { id: 'f26', title: '목·승모근 늘리기',             meta: '1분',     action: { type: 'move', id: 's1' } },
-    { id: 'f27', title: '창문 열고 햇빛 3분',           meta: '3분',     action: { type: 'move', id: 'b1' } },
+    { id: 'f23', title: '따뜻한 차 내려 천천히 마시기', action: { type: 'move', id: 'b2' } },
+    { id: 'f24', title: '눈 감고 창밖 멍때리기', action: { type: 'move', id: 'b15' } },
+    { id: 'f25', title: '아기 자세 30초씩 두 번', action: { type: 'move', id: 's3' } },
+    { id: 'f26', title: '목·승모근 늘리기', action: { type: 'move', id: 's1' } },
+    { id: 'f27', title: '창문 열고 햇빛 보기', action: { type: 'move', id: 'b1' } },
     { id: 'f28', title: '새소년 한 곡 바로 듣기',       meta: '4분',     action: { type: 'song', id: 't15' } },
-    { id: 'f29', title: '손목·팔뚝 늘리기',             meta: '1분',     action: { type: 'move', id: 's11' } },
-    { id: 'f30', title: '이불만 쓱 펴기',               meta: '30초',    action: { type: 'move', id: 'b7' } },
-    { id: 'f31', title: '물 한 컵 천천히 다 마시기',    meta: '1분',     action: { type: 'move', id: 'b6' } },
-    { id: 'f32', title: '책상 위 세 개만 제자리로',     meta: '1분',     action: { type: 'move', id: 'b8' } },
-    { id: 'f33', title: '따뜻한 물에 발만 담그기',      meta: '10분',    action: { type: 'move', id: 'b13' } },
-    { id: 'f34', title: '눈 위에 따뜻한 수건 올리고 눕기', meta: '10분', action: { type: 'move', id: 'b14' } },
-    { id: 'f35', title: '창밖 멀리 보며 5분 멍때리기',  meta: '5분',     action: { type: 'move', id: 'b15' } },
-    { id: 'f36', title: '귤 천천히 까기',               meta: '5분',     action: { type: 'move', id: 'b16' } },
-    { id: 'f37', title: '따뜻한 물 아래 3분 서 있기',   meta: '3분',     action: { type: 'move', id: 'b17' } }
+    { id: 'f29', title: '손목·팔뚝 늘리기', action: { type: 'move', id: 's11' } },
+    { id: 'f30', title: '이불만 쓱 펴기', action: { type: 'move', id: 'b7' } },
+    { id: 'f31', title: '물 한 컵 천천히 다 마시기', action: { type: 'move', id: 'b6' } },
+    { id: 'f32', title: '책상 위 세 개만 제자리로', action: { type: 'move', id: 'b8' } },
+    { id: 'f33', title: '따뜻한 물에 발만 담그기', action: { type: 'move', id: 'b13' } },
+    { id: 'f34', title: '눈 위에 따뜻한 수건 올리고 눕기', action: { type: 'move', id: 'b14' } },
+    { id: 'f35', title: '창밖 멀리 보며 멍때리기', action: { type: 'move', id: 'b15' } },
+    { id: 'f36', title: '귤 천천히 까기', action: { type: 'move', id: 'b16' } },
+    { id: 'f37', title: '따뜻한 물 아래 서 있기', action: { type: 'move', id: 'b17' } }
   ],
 
   // 산책·구경 코스 — 상계주공3단지(동일로215길 48) 기준, maps로 실존 확인
