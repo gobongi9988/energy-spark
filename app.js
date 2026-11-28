@@ -942,7 +942,7 @@
         '<div class="mvmeta">' +
           '<span class="tag accent">' + esc(m.type || '간단') + '</span>' +
           '<span class="tag">' + esc(m.reps || durLabel(m.d)) + '</span>' +
-          '<span class="tag">' + esc(durLabel(m.d)) + '</span>' +
+          (m.reps && m.reps !== durLabel(m.d) ? '<span class="tag">' + esc(durLabel(m.d)) + '</span>' : '') +
         '</div>' +
       '</div>' +
       '<p class="mv-good"><b>좋은 데</b>' + esc(m.good) + '</p>' +
