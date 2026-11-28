@@ -896,8 +896,13 @@
       if (pts.length > 1) paired = true;
       if (!pts.length) return;
       var xy = pts[0];  // 대칭 혈은 한쪽만 찍어 글자가 겹치지 않게
-      marks += '<g class="mark"><circle cx="' + xy[0] + '" cy="' + xy[1] + '" r="8"/>' +
-        '<text x="' + xy[0] + '" y="' + (xy[1] + 3.2) + '">' + (i + 1) + '</text></g>';
+      var bx = xy[0] < 104 ? xy[0] - 17 : (xy[0] > 116 ? xy[0] + 17 : xy[0]);
+      var by = xy[0] < 104 || xy[0] > 116 ? xy[1] - 7 : xy[1] - 19;
+      marks += '<g class="mark">' +
+        '<line x1="' + xy[0] + '" y1="' + xy[1] + '" x2="' + bx + '" y2="' + by + '"/>' +
+        '<circle class="dot" cx="' + xy[0] + '" cy="' + xy[1] + '" r="3.2"/>' +
+        '<circle class="badge" cx="' + bx + '" cy="' + by + '" r="7.6"/>' +
+        '<text x="' + bx + '" y="' + (by + 3) + '">' + (i + 1) + '</text></g>';
     });
     return '<div class="diagram">' +
       '<svg viewBox="0 0 220 200" role="img" aria-label="' + esc(m.name) + ' 지압점 위치 도해">' +
