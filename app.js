@@ -827,7 +827,7 @@
       '<div class="rcard-head">' +
         '<div class="rcard-main">' +
           '<div class="rcard-name">' + esc(r.name) + '</div>' +
-          '<div class="rcard-meta">' + r.steps.length + '개 동작 · ' + esc(r.note) + '</div>' +
+          '<div class="rcard-meta">' + r.steps.length + '개 동작</div>' +
         '</div>' +
         '<button class="rcard-btn" data-rdone="' + esc(r.id) + '">했음</button>' +
       '</div>' +
