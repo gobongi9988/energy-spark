@@ -934,9 +934,7 @@
     } else {
       btns = '<button class="btn-primary" data-mstart="1">시작 · ' + durLabel(m.d) + '</button>';
     }
-    if (!(active && body.running)) {
-      btns += '<button class="btn-outline slim" data-mdone="1">했음</button>';
-    }
+    btns += '<button class="btn-outline slim" data-mdone="1">했음</button>';
 
     $('#mvBody').innerHTML =
       '<div class="mvhead">' +
