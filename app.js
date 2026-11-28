@@ -869,7 +869,7 @@
   // ── 동작 상세 시트 ──────────────────────
   function faceDiagram() {
     return '<g class="fg">' +
-      '<ellipse cx="110" cy="108" rx="56" ry="88"/>' +
+      '<ellipse cx="110" cy="102" rx="56" ry="84"/>' +
       '<path d="M110 20c-16 0-30 6-40 18"/><path d="M110 20c16 0 30 6 40 18"/>' +
       '<path d="M76 94c8-6 18-6 24-1"/><path d="M120 93c6-5 16-5 24 1"/>' +
       '<path d="M82 112c5-5 11-5 16 0-5 5-11 5-16 0z"/><path d="M122 112c5-5 11-5 16 0-5 5-11 5-16 0z"/>' +
@@ -878,29 +878,33 @@
       '<path d="M54 100c-7 5-7 20 0 25"/><path d="M166 100c7 5 7 20 0 25"/>' +
     '</g>';
   }
+  // 뒤에서 본 머리: 백회(정수리)·태양(옆 관자)·풍지(뒷목)·견정(어깨)
   function headDiagram() {
     return '<g class="fg">' +
-      '<circle cx="110" cy="94" r="54"/>' +
-      '<path d="M64 96c0-26 18-52 46-54"/>' +
-      '<path d="M84 102c8-3 14 2 14 9s-6 11-14 9"/>' +
-      '<path d="M120 146c3 14 0 24-6 32"/><path d="M98 150c2 12 6 22 12 28"/>' +
-      '<path d="M72 198c14-18 34-22 52-18"/><path d="M124 180c16 2 30 8 38 16"/>' +
+      '<path d="M110 16c31 0 54 25 54 58 0 32-23 58-54 58s-54-26-54-58c0-33 23-58 54-58z"/>' +
+      '<path d="M56 66c-7 5-7 18 0 23"/><path d="M164 66c7 5 7 18 0 23"/>' +
+      '<path d="M90 130v32"/><path d="M130 130v32"/>' +
+      '<path d="M90 160c-20 7-34 17-42 30"/><path d="M130 160c20 7 34 17 42 30"/>' +
     '</g>';
   }
   function moveDiagram(m) {
     if (!m.diagram) return '';
-    var marks = '';
+    var marks = '', paired = false;
     (m.steps || []).forEach(function (st, i) {
       if (typeof st === 'string') return;
-      (st.map || []).forEach(function (xy) {
-        marks += '<g class="mark"><circle cx="' + xy[0] + '" cy="' + xy[1] + '" r="8.5"/>' +
-          '<text x="' + xy[0] + '" y="' + (xy[1] + 3.4) + '">' + (i + 1) + '</text></g>';
-      });
+      var pts = st.map || [];
+      if (pts.length > 1) paired = true;
+      if (!pts.length) return;
+      var xy = pts[0];  // 대칭 혈은 한쪽만 찍어 글자가 겹치지 않게
+      marks += '<g class="mark"><circle cx="' + xy[0] + '" cy="' + xy[1] + '" r="8"/>' +
+        '<text x="' + xy[0] + '" y="' + (xy[1] + 3.2) + '">' + (i + 1) + '</text></g>';
     });
     return '<div class="diagram">' +
-      '<svg viewBox="0 0 220 214" role="img" aria-label="' + esc(m.name) + ' 지압점 위치 도해">' +
+      '<svg viewBox="0 0 220 200" role="img" aria-label="' + esc(m.name) + ' 지압점 위치 도해">' +
       (m.diagram === 'head' ? headDiagram() : faceDiagram()) + marks +
-      '</svg></div>';
+      '</svg>' +
+      (paired ? '<p class="diagram-note">대칭인 혈은 한쪽만 표시했어요. 반대쪽도 똑같이 짚으면 됩니다.</p>' : '') +
+      '</div>';
   }
 
   function renderMoveSheet() {

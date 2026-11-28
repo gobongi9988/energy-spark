@@ -542,3 +542,7 @@ body.has-dock.dock-open .app{padding-bottom:calc(340px + env(safe-area-inset-bot
 /* ── 핫플 사진 ───────────────────────── */
 .hot-photo{display:block;width:100%;margin:0 0 12px;border-radius:13px;overflow:hidden;background:var(--surface-2)}
 .hot-photo img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.diagram-note{
+  margin:2px 0 8px;text-align:center;font-size:11px;line-height:1.45;color:var(--muted);
+  letter-spacing:-.01em;
+}
