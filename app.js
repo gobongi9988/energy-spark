@@ -213,7 +213,6 @@
       if (name === 'music') { if (!player.userCollapsed) setDockOpen(true, true); }
       else if (player.open) setDockOpen(false, true);
     }
-    if (name === 'timer') renderTimer();
     if (name === 'walk') renderWalk();
     if (name === 'body') renderBody();
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -267,7 +266,6 @@
     player.playing = on;
     paintPlayBtn();
     renderMusic();
-    renderTimer();
   }
   function setDockOpen(open, auto) {
     player.open = !!open;
@@ -292,7 +290,7 @@
     if (player.videoId === item.yt && !force) {
       if (open !== false) setDockOpen(true);
       if (autoplay) { ytCmd('playVideo'); setPlaying(true); }
-      renderMusic(); renderTimer();
+      renderMusic();
       return;
     }
     player.itemId = item.id;
@@ -311,7 +309,7 @@
     player.frame = f;
     paintPlayBtn();
     if (open !== false) setDockOpen(true); else { player.open = false; player.userCollapsed = true; dockEl.classList.remove('open'); document.body.classList.remove('dock-open'); }
-    renderMusic(); renderTimer();
+    renderMusic();
   }
   function closePlayer() {
     player.itemId = null; player.videoId = null; player.frame = null; player.playing = false; player.started = false;
@@ -321,7 +319,7 @@
     document.body.classList.remove('has-dock', 'dock-open');
     player.open = false;
     player.userCollapsed = false;
-    renderMusic(); renderTimer();
+    renderMusic();
   }
   // 곡을 고를 때: 들고 있는 음악이 없으면 플레이어를 미리 띄워 둠(재생은 버튼으로)
   function previewLoad(item) {
@@ -619,7 +617,7 @@
   function favActionLabel(a) {
     if (!a) return '지금 하기';
     if (a.type === 'tab') {
-      return { timer: '3분 타이머 켜기', body: '몸풀기 열기', music: '음악 틀기' }[a.tab] || '열기';
+      return { body: '몸풀기 열기', music: '음악 틀기' }[a.tab] || '열기';
     }
     if (a.type === 'move') return '이 동작 바로 시작';
     if (a.type === 'song') return '이 곡 바로 틀기';
@@ -632,12 +630,20 @@
     if (a.type === 'move') {
       var mv = moveById(a.id);
       if (!mv) return;
-      state.bodyFilter = mv.track === 'simple' ? 'simple' : 'stretch';
+      state.bodyFilter = mv.track;
       save();
       goTab('body');
-      activateMove(a.id, true);
-      var el = document.getElementById('mv-' + a.id);
-      if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      body.activeId = a.id;
+      body.remain = mv.d;
+      body.done = false;
+      body.openId = a.id;
+      routine = null;
+      renderBody();
+      openMoveSheet(a.id);
+      chimeStart();
+      body.running = true;
+      body.endAt = Date.now() + mv.d * 1000;
+      renderMoveSheet();
       return;
     }
     if (a.type === 'song') {
@@ -760,13 +766,14 @@
   });
 
   // ── 몸풀기 ──────────────────────────────
-  // body = 한 동작 타이머, routine = 커리큘럼 코스(단계별). 둘 중 하나만 돈다.
-  var body = { activeId: null, running: false, remain: 0, endAt: 0, done: false, praise: null };
+  // 그리드에는 딱 그림 + 동작 이름만. 누르면 아래 시트에서 위치·방법·횟수·효과를 다 보여 줌.
+  var body = { activeId: null, running: false, remain: 0, endAt: 0, done: false, openId: null };
   var routine = null; // { id, i, running, remain, endAt, done }
 
   function allMoves() {
-    return (D.stretch || []).map(function (m) { return Object.assign({ track: 'stretch' }, m); })
-      .concat((D.simple || []).map(function (m) { return Object.assign({ track: 'simple' }, m); }));
+    return (D.stretch || []).map(function (m) {
+      return Object.assign({ track: (m.type === '지압' || m.type === '페이스요가') ? 'face' : 'stretch' }, m);
+    }).concat((D.simple || []).map(function (m) { return Object.assign({ track: 'simple' }, m); }));
   }
   function moveById(id) {
     return allMoves().filter(function (m) { return m.id === id; })[0] || null;
@@ -774,170 +781,220 @@
   function routineById(id) {
     return (D.routines || []).filter(function (r) { return r.id === id; })[0] || null;
   }
+  function fmt(sec) {
+    var s = Math.max(0, Math.ceil(sec));
+    var m = Math.floor(s / 60), r = s % 60;
+    return m + ':' + (r < 10 ? '0' : '') + r;
+  }
   function durLabel(sec) {
     if (sec < 60) return sec + '초';
     var m = Math.floor(sec / 60), r = sec % 60;
     return r ? m + '분 ' + r + '초' : m + '분';
   }
+  function moveIcon(id) { return 'assets/moves/' + id + '.png'; }
+
   function bodyRandomPool() {
     var f = state.bodyFilter || 'all';
     return allMoves().filter(function (m) {
-      if (f === 'stretch') return m.track === 'stretch';
-      if (f === 'simple') return m.track === 'simple';
-      return true;
+      if (f === 'all') return true;
+      return m.track === f;
     });
   }
-  function stopAllBody() {
-    body.running = false;
-    body.remain = 0;
-    routine = null;
+
+  function moveTile(m) {
+    var active = body.activeId === m.id;
+    var pct = 0;
+    if (active) {
+      pct = body.done ? 100 : (body.remain > 0 ? (1 - body.remain / m.d) * 100 : 0);
+    }
+    return '<button class="mtile' + (active ? ' on' : '') + '" data-move="' + esc(m.id) + '">' +
+      '<span class="mtile-art"><img src="' + moveIcon(m.id) + '" alt="" width="340" height="340" loading="lazy" decoding="async"></span>' +
+      '<span class="mtile-name">' + esc(m.name) + '</span>' +
+      (active && body.running ? '<span class="mtile-time" id="mvTileTime">' + fmt(body.remain) + '</span>' : '') +
+      (active ? '<span class="mtile-bar" id="mvTileBar"><i style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i></span>' : '') +
+    '</button>';
   }
+
   function renderBody() {
     var f = state.bodyFilter || 'all';
     $$('#bodySeg button').forEach(function (b) { b.classList.toggle('on', b.dataset.f === f); });
 
     var rBox = $('#routineBox');
-    rBox.innerHTML = (f === 'simple' || !(D.routines || []).length)
-      ? ''
-      : D.routines.map(routineCard).join('');
-    rBox.style.marginBottom = rBox.innerHTML ? '' : '0';
+    if (!rBox) return;
+    if (f === 'simple' || !(D.routines || []).length) {
+      rBox.innerHTML = '';
+    } else {
+      rBox.innerHTML = '<div class="msec"><span>이어서 하는 코스</span></div>' +
+        D.routines.map(routineCard).join('');
+    }
 
+    var groups = [
+      { k: 'stretch', label: '요가·스트레칭' },
+      { k: 'face', label: '지압·페이스' },
+      { k: 'simple', label: '간단한 거' }
+    ];
+    var list = allMoves();
     var html = '';
-    if (f !== 'simple') {
-      html += '<div class="section-head"><h2>스트레칭 &amp; 요가</h2><span class="count">' + D.stretch.length + '개</span></div>';
-      html += D.stretch.map(moveCard).join('');
-    }
-    if (f !== 'stretch') {
-      html += '<div class="section-head"><h2>진짜 간단한 것</h2><span class="count">' + D.simple.length + '개</span></div>';
-      html += D.simple.map(moveCard).join('');
-    }
-    $('#moveList').innerHTML = html;
-  }
-
-  function artOf(id) {
-    var a = (window.SIDONG_ART || {})[id];
-    return a ? a : '';
-  }
-
-  function moveCard(m) {
-    var active = body.activeId === m.id;
-    var pct = 0;
-    if (active) {
-      if (body.done) pct = 100;
-      else if (body.remain > 0) pct = (1 - body.remain / m.d) * 100;
-    }
-    var dlab = durLabel(m.d);
-    return '<article class="card move' + (active ? ' on' : '') + '" id="mv-' + m.id + '">' +
-      '<div class="card-top">' +
-        '<span class="tag accent">' + esc(m.type || '간단') + '</span>' +
-        (m.reps && m.reps !== dlab ? '<span class="tag">' + esc(m.reps) + '</span>' : '') +
-        '<span class="tag">' + esc(dlab) + '</span>' +
-      '</div>' +
-      '<h3>' + esc(m.name) + '</h3>' +
-      artOf(m.id) +
-      '<p class="mv-good"><b>좋은 데</b>' + esc(m.good) + '</p>' +
-      '<p class="mv-tip">' + esc(m.tip) + '</p>' +
-      (m.steps ? '<ol class="msteps">' + m.steps.map(function (st) {
-        return '<li>' + esc(st) + '</li>';
-      }).join('') + '</ol>' : '') +
-      (active
-        ? '<div class="bar"><i id="mvBar" style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i></div>' +
-          '<div class="timerbtns">' +
-            '<button class="btn-primary" data-toggle="' + esc(m.id) + '">' +
-              (body.running ? '멈춤' : body.done ? '한 번 더'
-                : (body.remain > 0 && body.remain < m.d - 0.5) ? '계속' : '시작') + '</button>' +
-            (body.done ? '' : '<button class="btn-outline slim" data-done="' + esc(m.id) + '">완료</button>') +
-          '</div>' +
-          '<button class="linkbtn center" data-close="1">접기</button>'
-        : '<div class="mv-btns">' +
-            '<button class="mv-go" data-start="' + esc(m.id) + '">시작</button>' +
-            '<button class="mv-check" data-done="' + esc(m.id) + '">완료</button>' +
-          '</div>') +
-    '</article>';
+    groups.forEach(function (g) {
+      if (f !== 'all' && f !== g.k) return;
+      var items = list.filter(function (m) { return m.track === g.k; });
+      if (!items.length) return;
+      html += '<div class="msec"><span>' + g.label + '</span><span class="count">' + items.length + '</span></div>' +
+        '<div class="mgrid">' + items.map(moveTile).join('') + '</div>';
+    });
+    $('#moveGrid').innerHTML = html;
   }
 
   function routineCard(r) {
     var cur = (routine && routine.id === r.id) ? routine : null;
     var total = r.steps.reduce(function (a, s) { return a + s.sec; }, 0);
-    var steps = r.steps.map(function (s, i) {
-      var m = moveById(s.id) || { name: s.id };
-      var cls = '', mark = i + 1, right = '<span class="t">' + durLabel(s.sec) + '</span>';
-      if (cur) {
-        var passed = i < cur.i || (cur.done && i <= cur.i);
-        if (passed) { cls = ' past'; mark = '✓'; }
-        else if (i === cur.i) {
-          cls = ' on';
-          right = '<span class="t" id="rTime">' + fmt(cur.remain) + '</span>';
-        }
-      }
-      return '<li class="step' + cls + '"><span class="n">' + mark + '</span>' +
-        '<span class="s-name">' + esc(m.name) + '</span>' + right + '</li>';
-    }).join('');
-
-    var btns;
-    if (!cur) btns = '<button class="btn-primary" data-rstart="' + esc(r.id) + '">코스 시작</button>';
-    else if (cur.done) btns = '<button class="btn-primary" data-rstart="' + esc(r.id) + '">한 번 더</button>';
-    else btns = '<button class="btn-primary" data-rtoggle="' + esc(r.id) + '">' + (cur.running ? '멈춤' : '계속') + '</button>' +
-      '<button class="btn-outline slim" data-rnext="' + esc(r.id) + '">' +
-      (cur.i >= r.steps.length - 1 ? '끝내기' : '다음 동작') + '</button>';
-
-    return '<article class="card routine" id="rt-' + r.id + '">' +
-      '<div class="card-top">' +
-        '<span class="tag accent">코스</span>' +
-        '<span class="tag">' + esc(durLabel(total)) + '</span>' +
-        '<span class="tag">' + r.steps.length + '개 동작</span>' +
-      '</div>' +
-      '<h3>' + esc(r.name) + '</h3>' +
-      '<p class="note">' + esc(r.note) + '</p>' +
-      '<ol class="steps">' + steps + '</ol>' +
-      (cur && !cur.done
-        ? '<div class="bar"><i id="rBar" style="width:' +
-            Math.max(0, Math.min(100, (1 - cur.remain / r.steps[cur.i].sec) * 100)) + '%"></i></div>'
-        : '') +
-      '<div class="timerbtns"' + (cur && !cur.done ? '' : ' style="margin-top:14px"') + '>' + btns + '</div>' +
+    var right;
+    if (!cur) {
+      right = '<button class="rcard-btn" data-rstart="' + esc(r.id) + '">시작</button>';
+    } else if (cur.done) {
+      right = '<button class="rcard-btn" data-rstart="' + esc(r.id) + '">한 번 더</button>';
+    } else {
+      right = '<span class="rtime" id="rTime">' + fmt(cur.remain) + '</span>' +
+        '<button class="rcard-mini" data-rtoggle="' + esc(r.id) + '">' + (cur.running ? '멈춤' : '계속') + '</button>' +
+        '<button class="rcard-mini" data-rnext="' + esc(r.id) + '">' + (cur.i >= r.steps.length - 1 ? '끝내기' : '다음') + '</button>';
+    }
+    return '<article class="rcard" id="rt-' + esc(r.id) + '">' +
+      '<div class="rcard-main">' +
+        '<div class="rcard-name">' + esc(r.name) + '</div>' +
+        '<div class="rcard-meta">' + r.steps.length + '개 동작 · ' + durLabel(total) + '</div>' +
+      '</div>' + right +
     '</article>';
   }
 
-  function activateMove(id, auto) {
+  // ── 동작 상세 시트 ──────────────────────
+  function faceDiagram() {
+    return '<g class="fg">' +
+      '<ellipse cx="110" cy="108" rx="56" ry="88"/>' +
+      '<path d="M110 20c-16 0-30 6-40 18"/><path d="M110 20c16 0 30 6 40 18"/>' +
+      '<path d="M76 94c8-6 18-6 24-1"/><path d="M120 93c6-5 16-5 24 1"/>' +
+      '<path d="M82 112c5-5 11-5 16 0-5 5-11 5-16 0z"/><path d="M122 112c5-5 11-5 16 0-5 5-11 5-16 0z"/>' +
+      '<path d="M110 116v30"/><path d="M102 150c4 5 12 5 16 0"/>' +
+      '<path d="M97 170c9-4 17-4 26 0"/><path d="M97 173c9 6 17 6 26 0"/>' +
+      '<path d="M54 100c-7 5-7 20 0 25"/><path d="M166 100c7 5 7 20 0 25"/>' +
+    '</g>';
+  }
+  function headDiagram() {
+    return '<g class="fg">' +
+      '<circle cx="110" cy="94" r="54"/>' +
+      '<path d="M64 96c0-26 18-52 46-54"/>' +
+      '<path d="M84 102c8-3 14 2 14 9s-6 11-14 9"/>' +
+      '<path d="M120 146c3 14 0 24-6 32"/><path d="M98 150c2 12 6 22 12 28"/>' +
+      '<path d="M72 198c14-18 34-22 52-18"/><path d="M124 180c16 2 30 8 38 16"/>' +
+    '</g>';
+  }
+  function moveDiagram(m) {
+    if (!m.diagram) return '';
+    var marks = '';
+    (m.steps || []).forEach(function (st, i) {
+      if (typeof st === 'string') return;
+      (st.map || []).forEach(function (xy) {
+        marks += '<g class="mark"><circle cx="' + xy[0] + '" cy="' + xy[1] + '" r="8.5"/>' +
+          '<text x="' + xy[0] + '" y="' + (xy[1] + 3.4) + '">' + (i + 1) + '</text></g>';
+      });
+    });
+    return '<div class="diagram">' +
+      '<svg viewBox="0 0 220 214" role="img" aria-label="' + esc(m.name) + ' 지압점 위치 도해">' +
+      (m.diagram === 'head' ? headDiagram() : faceDiagram()) + marks +
+      '</svg></div>';
+  }
+
+  function renderMoveSheet() {
+    var m = moveById(body.openId);
+    if (!m) return;
+    $('#mvTitle').textContent = m.name;
+    var active = body.activeId === m.id;
+    var pct = 0;
+    if (active) pct = body.done ? 100 : (body.remain > 0 ? (1 - body.remain / m.d) * 100 : 0);
+
+    var steps = (m.steps || []).map(function (st, i) {
+      if (typeof st === 'string') return '<li><span class="mvn">' + (i + 1) + '</span><span class="mvstep">' + esc(st) + '</span></li>';
+      return '<li><span class="mvn">' + (i + 1) + '</span><span class="mvstep">' +
+        '<b>' + esc(st.n) + '</b>' +
+        '<span class="mvat">' + esc(st.at) + '</span>' +
+        '<span class="mvdo">' + esc(st.do) + '</span>' +
+      '</span></li>';
+    }).join('');
+
+    var btns;
+    if (active && body.running) {
+      btns = '<button class="btn-primary" data-mpause="1">멈춤</button>';
+    } else if (active && body.done) {
+      btns = '<button class="btn-primary" data-mstart="1">한 번 더</button>';
+    } else if (active && body.remain > 0 && body.remain < m.d - 0.5) {
+      btns = '<button class="btn-primary" data-mstart="1">계속</button>';
+    } else {
+      btns = '<button class="btn-primary" data-mstart="1">시작 · ' + durLabel(m.d) + '</button>';
+    }
+    if (!(active && body.running)) {
+      btns += '<button class="btn-outline slim" data-mdone="1">했음</button>';
+    }
+
+    $('#mvBody').innerHTML =
+      '<div class="mvhead">' +
+        '<span class="mvic"><img src="' + moveIcon(m.id) + '" alt="" width="340" height="340"></span>' +
+        '<div class="mvmeta">' +
+          '<span class="tag accent">' + esc(m.type || '간단') + '</span>' +
+          '<span class="tag">' + esc(m.reps || durLabel(m.d)) + '</span>' +
+          '<span class="tag">' + esc(durLabel(m.d)) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<p class="mv-good"><b>좋은 데</b>' + esc(m.good) + '</p>' +
+      '<p class="mv-tip">' + esc(m.tip) + '</p>' +
+      moveDiagram(m) +
+      (steps ? '<div class="mvsteps-label">이렇게</div><ol class="mvsteps">' + steps + '</ol>' : '') +
+      '<div class="mv-run">' +
+        (active ? '<div class="bar"><i id="mvBar" style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i></div>' +
+          '<div class="mv-time" id="mvTime">' + (body.done ? '다 했음' : fmt(body.remain)) + '</div>' : '') +
+        '<div class="timerbtns">' + btns + '</div>' +
+      '</div>';
+  }
+
+  function openMoveSheet(id) {
     var m = moveById(id);
     if (!m) return;
-    routine = null;
-    body.activeId = id;
-    body.done = false;
-    body.praise = null;
-    body.remain = m.d;
-    body.running = false;
-    if (auto) {
-      chimeStart();
-      body.running = true;
-      body.endAt = Date.now() + m.d * 1000;
-    }
-    renderBody();
+    body.openId = id;
+    renderMoveSheet();
+    openSheet('sheetMove');
+    var sc = $('#sheetMove');
+    if (sc) sc.scrollTop = 0;
   }
-  function toggleMove() {
-    var m = moveById(body.activeId);
+
+  function startMove() {
+    var m = moveById(body.openId);
     if (!m) return;
-    if (body.running) {
-      body.remain = Math.max(0, (body.endAt - Date.now()) / 1000);
-      body.running = false;
-      renderBody();
-      return;
+    routine = null;
+    if (body.activeId !== m.id || body.done || body.remain <= 0) {
+      body.activeId = m.id;
+      body.remain = m.d;
+      body.done = false;
     }
-    if (body.done || body.remain <= 0) { body.done = false; body.praise = null; body.remain = m.d; }
     chimeStart();
     body.running = true;
     body.endAt = Date.now() + body.remain * 1000;
-    renderBody();
+    renderBody(); renderMoveSheet();
+  }
+  function pauseMove() {
+    if (!body.running) return;
+    body.remain = Math.max(0, (body.endAt - Date.now()) / 1000);
+    body.running = false;
+    renderBody(); renderMoveSheet();
   }
   function finishMove(id) {
     var m = moveById(id);
     if (!m) return;
     routine = null;
     body.activeId = id;
+    body.openId = id;
     body.running = false;
     body.done = true;
     body.remain = 0;
-    if (currentTab === 'body') renderBody();
+    renderBody();
+    if ($('#sheetMove').classList.contains('on')) renderMoveSheet();
     celebrate();
   }
 
@@ -947,7 +1004,6 @@
     body.activeId = null;
     body.running = false;
     body.done = false;
-    body.praise = null;
     routine = { id: id, i: 0, running: false, remain: r.steps[0].sec, endAt: 0, done: false };
     runRoutineStep();
     bringRoutineIntoView(id);
@@ -992,12 +1048,19 @@
   $('#bodyRandom').addEventListener('click', function () {
     var pool = bodyRandomPool();
     if (!pool.length) return;
-    var m = pickRandom(pool, body.activeId);
+    var m = pickRandom(pool, body.openId);
     if (!m) return;
-    activateMove(m.id, true);
-    var el = document.getElementById('mv-' + m.id);
-    if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    window.setTimeout(function () { toast('이거 해봐 · ' + m.name); }, 260);
+    body.activeId = m.id;
+    body.remain = m.d;
+    body.done = false;
+    body.openId = m.id;
+    routine = null;
+    renderBody();
+    openMoveSheet(m.id);
+    chimeStart();
+    body.running = true;
+    body.endAt = Date.now() + m.d * 1000;
+    renderMoveSheet();
   });
 
   $('#bodySeg').addEventListener('click', function (e) {
@@ -1007,105 +1070,42 @@
     save(); renderBody();
   });
 
-  $('#moveList').addEventListener('click', function (e) {
-    var el;
-    if ((el = e.target.closest('[data-start]'))) { activateMove(el.dataset.start, true); return; }
-    if ((el = e.target.closest('[data-toggle]'))) {
-      if (body.activeId !== el.dataset.toggle || routine) activateMove(el.dataset.toggle, false);
-      else toggleMove();
-      return;
-    }
-    if ((el = e.target.closest('[data-done]'))) { finishMove(el.dataset.done); return; }
-    if (e.target.closest('[data-close]')) {
-      body.activeId = null; body.running = false; body.done = false; body.praise = null; body.remain = 0;
-      renderBody();
-    }
+  $('#moveGrid').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-move]');
+    if (b) { openMoveSheet(b.dataset.move); return; }
+    var r = e.target.closest('[data-rstart]');
+    if (r) { startRoutine(r.dataset.rstart); return; }
+    var rt = e.target.closest('[data-rtoggle]');
+    if (rt) { toggleRoutine(rt.dataset.rtoggle); return; }
+    var rn = e.target.closest('[data-rnext]');
+    if (rn) { nextRoutineStep(); return; }
   });
-
   $('#routineBox').addEventListener('click', function (e) {
-    var el;
-    if ((el = e.target.closest('[data-rstart]'))) { startRoutine(el.dataset.rstart); return; }
-    if ((el = e.target.closest('[data-rtoggle]'))) {
-      if (!routine || routine.id !== el.dataset.rtoggle) { startRoutine(el.dataset.rtoggle); return; }
-      if (routine.running) {
-        routine.remain = Math.max(0, (routine.endAt - Date.now()) / 1000);
-        routine.running = false;
-      } else {
-        routine.running = true;
-        routine.endAt = Date.now() + routine.remain * 1000;
-        chimeStart();
-      }
-      renderBody();
-      return;
-    }
-    if (e.target.closest('[data-rnext]')) { nextRoutineStep(); }
+    var r = e.target.closest('[data-rstart]');
+    if (r) { startRoutine(r.dataset.rstart); return; }
+    var rt = e.target.closest('[data-rtoggle]');
+    if (rt) { toggleRoutine(rt.dataset.rtoggle); return; }
+    var rn = e.target.closest('[data-rnext]');
+    if (rn) { nextRoutineStep(); return; }
   });
-
-  // ── 타이머 ──────────────────────────────
-  var timer = { running: false, remain: 180, endAt: 0 };
-
-  function fmt(sec) {
-    var s = Math.max(0, Math.ceil(sec));
-    var m = Math.floor(s / 60);
-    var r = s % 60;
-    return m + ':' + (r < 10 ? '0' : '') + r;
+  function toggleRoutine(id) {
+    if (!routine || routine.id !== id) { startRoutine(id); return; }
+    if (routine.running) {
+      routine.remain = Math.max(0, (routine.endAt - Date.now()) / 1000);
+      routine.running = false;
+    } else {
+      routine.running = true;
+      routine.endAt = Date.now() + routine.remain * 1000;
+      chimeStart();
+    }
+    renderBody();
   }
-  // 타이머 화면에서 바로 듣기 (유튜브 그 곡을 그대로 틀어 줌)
-  $('#timerListen').addEventListener('click', function () {
-    var sel = library().filter(function (m) { return m.id === state.selectedId; })[0];
-    if (!sel) { goTab('music'); return; }
-    togglePlay(sel, false);
-  });
 
-  function renderTimer() {
-    var size = state.timerSize;
-    if (!timer.running && timer.remain > size) timer.remain = size;
-    $('#timerDigits').textContent = fmt(timer.remain);
-    var pct = Math.max(0, Math.min(100, (1 - timer.remain / size) * 100));
-    $('#timerBar').style.width = pct + '%';
-    $('#timerStart').textContent = timer.running ? '멈춤' : (timer.remain < size && timer.remain > 0 ? '계속' : '시작');
-    $$('#timerSeg button').forEach(function (b) {
-      b.classList.toggle('on', Number(b.dataset.min) * 60 === size);
-    });
-    var sel = library().filter(function (m) { return m.id === state.selectedId; })[0];
-    $('#timerMusicName').textContent = sel ? sel.title : '아직 안 고름';
-    var tl = $('#timerListen'), al = $('#timerAppLink');
-    if (tl) {
-      tl.hidden = !sel;
-      if (sel) tl.textContent = (player.itemId === sel.id && player.playing) ? '잠깐 멈추기' : (player.itemId === sel.id && player.started ? '▶ 이어서 재생' : '▶ 이 곡 틀기');
-    }
-    if (al) {
-      al.hidden = !sel;
-      if (sel) al.href = spLink(sel);
-    }
-  }
-  function switchSize(sec) {
-    state.timerSize = sec;
-    timer.running = false;
-    timer.remain = sec;
-    save(); renderTimer();
-  }
-  $('#timerSeg').addEventListener('click', function (e) {
-    var b = e.target.closest('button[data-min]');
-    if (b) switchSize(Number(b.dataset.min) * 60);
-  });
-  $('#timerStart').addEventListener('click', function () {
-    if (timer.running) {
-      timer.remain = Math.max(0, (timer.endAt - Date.now()) / 1000);
-      timer.running = false;
-      renderTimer();
-      return;
-    }
-    if (timer.remain <= 0) timer.remain = state.timerSize;
-    chimeStart();
-    timer.running = true;
-    timer.endAt = Date.now() + timer.remain * 1000;
-    renderTimer();
-  });
-  $('#timerReset').addEventListener('click', function () {
-    timer.running = false;
-    timer.remain = state.timerSize;
-    renderTimer();
+  $('#sheetMove').addEventListener('click', function (e) {
+    if (e.target.closest('[data-mvclose]')) { closeSheets(); return; }
+    if (e.target.closest('[data-mstart]')) { startMove(); return; }
+    if (e.target.closest('[data-mpause]')) { pauseMove(); return; }
+    if (e.target.closest('[data-mdone]')) { finishMove(body.openId); return; }
   });
 
   // ── 산책 ────────────────────────────────
@@ -1173,6 +1173,9 @@
       '<div class="section-head"><h2>인스타에서 핫한 데</h2><span class="count">카페·빵집·맛집 ' + list.length + '곳</span></div>' +
       list.map(function (h) {
         return '<article class="card hot">' +
+          (h.img
+            ? '<span class="hot-photo"><img src="' + esc(h.img) + '" alt="' + esc(h.name) + ' 사진" loading="lazy" decoding="async" onerror="this.closest(\'.hot-photo\').style.display=\'none\'"></span>'
+            : '') +
           '<div class="card-top"><span class="tag accent">' + esc(h.cat) + '</span></div>' +
           '<h3>' + esc(h.name) + '</h3>' +
           '<p class="hot-addr">' + esc(h.addr) + '</p>' +
@@ -1193,15 +1196,6 @@
   // ── 공통 틱 ─────────────────────────────
   var chip = $('#liveChip'), chipTime = $('#liveTime'), chipLabel = $('#liveLabel');
   setInterval(function () {
-    if (timer.running) {
-      timer.remain = Math.max(0, (timer.endAt - Date.now()) / 1000);
-      if (timer.remain <= 0) {
-        timer.running = false;
-        timer.remain = 0;
-        celebrate();
-      }
-      if (currentTab === 'timer') renderTimer();
-    }
     if (routine && routine.running) {
       var rr = routineById(routine.id);
       if (rr) {
@@ -1209,9 +1203,6 @@
         if (routine.remain <= 0) {
           nextRoutineStep();
         } else if (currentTab === 'body') {
-          var st = rr.steps[routine.i];
-          var rbar = $('#rBar');
-          if (rbar) rbar.style.width = Math.max(0, Math.min(100, (1 - routine.remain / st.sec) * 100)) + '%';
           var rtime = $('#rTime');
           if (rtime) rtime.textContent = fmt(routine.remain);
         }
@@ -1222,15 +1213,19 @@
         body.remain = Math.max(0, (body.endAt - Date.now()) / 1000);
         if (body.remain <= 0) {
           finishMove(bm.id);
-        } else if (currentTab === 'body') {
+        } else {
           var mbar = $('#mvBar');
           if (mbar) mbar.style.width = Math.max(0, Math.min(100, (1 - body.remain / bm.d) * 100)) + '%';
+          var mtime = $('#mvTime');
+          if (mtime) mtime.textContent = fmt(body.remain);
+          var ttime = $('#mvTileTime');
+          if (ttime) ttime.textContent = fmt(body.remain);
+          var tbar = $('#mvTileBar');
+          if (tbar) tbar.firstChild.style.width = Math.max(0, Math.min(100, (1 - body.remain / bm.d) * 100)) + '%';
         }
       }
     }
-    if (timer.running) {
-      chip.hidden = false; chipLabel.textContent = '타이머'; chipTime.textContent = fmt(timer.remain);
-    } else if (routine && routine.running) {
+    if (routine && routine.running) {
       chip.hidden = false; chipLabel.textContent = '코스'; chipTime.textContent = fmt(routine.remain);
     } else if (body.running) {
       chip.hidden = false; chipLabel.textContent = '몸풀기'; chipTime.textContent = fmt(body.remain);
@@ -1239,7 +1234,8 @@
     }
   }, 200);
   chip.addEventListener('click', function () {
-    goTab(timer.running ? 'timer' : 'body');
+    goTab('body');
+    if (body.activeId) openMoveSheet(body.activeId);
   });
 
   // ── 시작 ────────────────────────────────
@@ -1247,6 +1243,5 @@
   renderMusic();
   renderFav();
   renderBody();
-  renderTimer();
   renderWalk();
 })();

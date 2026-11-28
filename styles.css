@@ -257,20 +257,6 @@ a.btn-primary{text-decoration:none}
 .routine .bar{margin:14px 0}
 .routine .timerbtns .btn-outline{min-height:54px;width:auto;flex:0 0 auto;padding:0 20px}
 
-/* ── 동작 그림 설명 (SVG) ─────────────── */
-.svgdefs{position:absolute;width:0;height:0;overflow:hidden}
-.art{display:block;width:100%;height:auto;margin:2px 0 12px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2)}
-.art .b{fill:none;stroke:var(--ink);stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}
-.art .b.solid{fill:var(--surface-2)}
-.art .head{fill:var(--ink);stroke:var(--ink);stroke-width:1.5;stroke-linejoin:round}
-.art .f{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.art .g{fill:none;stroke:var(--muted);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:4 5;opacity:.75}
-.art .a{fill:none;stroke:var(--accent);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
-.art .p{fill:var(--point);stroke:var(--surface-2);stroke-width:1.5}
-.art .floor{stroke:var(--muted);stroke-width:1.4;opacity:.32;stroke-linecap:round}
-.art text{font-family:inherit;font-size:10.5px;font-weight:700;fill:var(--ink)}
-.art text.sm{font-size:9px;font-weight:600;fill:var(--muted)}
-
 /* ── 인스타 핫플 ─────────────────────── */
 #hotList{margin-top:6px}
 #hotList .section-head{margin:20px 0 10px}
@@ -451,3 +437,108 @@ body.has-dock.dock-open .app{padding-bottom:calc(340px + env(safe-area-inset-bot
 @keyframes cdogIn{0%{transform:scale(.7) rotate(-6deg);opacity:0}70%{transform:scale(1.06) rotate(2deg)}100%{transform:scale(1);opacity:1}}
 @media (prefers-reduced-motion: reduce){.cdog{animation:none}}
 .btn-primary > svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+
+/* ── 몸풀기 한눈에 그리드 ─────────────── */
+#routineBox{margin-bottom:4px}
+.msec{
+  display:flex;align-items:baseline;justify-content:space-between;
+  margin:20px 0 9px;font-size:12.5px;font-weight:800;letter-spacing:.01em;color:var(--muted);
+}
+#routineBox .msec{margin:6px 0 9px}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mtile{
+  position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:12px 10px 13px;border-radius:18px;border:1px solid var(--line);
+  background:var(--surface);box-shadow:var(--shadow);overflow:hidden;
+  transition:transform .1s ease,border-color .15s ease;
+}
+.mtile:active{transform:scale(.975)}
+.mtile.on{border-color:color-mix(in srgb, var(--accent) 55%, var(--line))}
+.mtile-art{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;aspect-ratio:1/1;border-radius:13px;background:var(--surface-2);
+}
+.mtile-art img{width:82%;height:82%;object-fit:contain;display:block}
+@media (prefers-color-scheme: dark){
+  .mtile-art img{filter:invert(1) hue-rotate(180deg) brightness(1.06)}
+}
+.mtile-name{
+  font-size:12.5px;font-weight:700;letter-spacing:-.02em;line-height:1.32;text-align:center;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  min-height:2.64em;
+}
+.mtile-time{
+  position:absolute;top:9px;right:9px;padding:3px 7px;border-radius:8px;
+  background:var(--accent);color:#fff8f4;font-size:11px;font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
+.mtile-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--surface-2)}
+.mtile-bar i{display:block;height:100%;background:var(--accent);transition:width .3s linear}
+
+/* ── 코스 카드 ────────────────────────── */
+.rcard{
+  display:flex;align-items:center;gap:10px;padding:13px 14px;margin-bottom:8px;
+  border-radius:16px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow);
+}
+.rcard-main{min-width:0;flex:1}
+.rcard-name{font-size:14px;font-weight:700;letter-spacing:-.01em}
+.rcard-meta{font-size:11.5px;color:var(--muted);margin-top:2px}
+.rcard-btn{
+  flex:0 0 auto;padding:9px 16px;border-radius:11px;border:0;
+  background:var(--ink);color:var(--bg);font-size:13px;font-weight:700;
+}
+.rcard-mini{
+  flex:0 0 auto;padding:8px 12px;border-radius:10px;border:1px solid var(--line);
+  background:var(--surface-2);font-size:12px;font-weight:700;
+}
+.rtime{flex:0 0 auto;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent)}
+
+/* ── 동작 상세 시트 ───────────────────── */
+.mvhead{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.mvic{
+  flex:0 0 auto;width:86px;height:86px;border-radius:20px;background:var(--surface-2);
+  display:flex;align-items:center;justify-content:center;border:1px solid var(--line);
+}
+.mvic img{width:78%;height:78%;object-fit:contain}
+@media (prefers-color-scheme: dark){
+  .mvic img{filter:invert(1) hue-rotate(180deg) brightness(1.06)}
+}
+.mvmeta{display:flex;flex-wrap:wrap;gap:6px;align-content:center}
+.mv-good{font-size:13.5px;line-height:1.5;letter-spacing:-.01em}
+.mv-good b{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.03em;color:var(--accent);margin-right:6px;vertical-align:1.5px}
+.mv-tip{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:6px;letter-spacing:-.01em}
+.diagram{
+  margin:16px 0 4px;padding:10px 12px 4px;border-radius:16px;
+  border:1px solid var(--line);background:var(--surface-2);
+}
+.diagram svg{display:block;width:100%;max-width:260px;height:auto;margin:0 auto}
+.diagram .fg{fill:none;stroke:var(--ink);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;opacity:.55}
+.diagram .mark circle{fill:var(--accent);stroke:var(--surface);stroke-width:1.6}
+.diagram .mark text{
+  font-size:9.5px;font-weight:800;fill:#fff8f4;text-anchor:middle;
+  font-family:inherit;
+}
+.mvsteps-label{margin:18px 0 8px;font-size:11.5px;font-weight:800;letter-spacing:.04em;color:var(--muted)}
+.mvsteps{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px}
+.mvsteps li{display:flex;gap:10px}
+.mvn{
+  flex:0 0 auto;width:20px;height:20px;border-radius:50%;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--accent-soft);color:color-mix(in srgb, var(--accent) 80%, var(--ink));
+  font-size:11px;font-weight:800;
+}
+.mvstep{flex:1;min-width:0;display:block;font-size:12.8px;line-height:1.55;letter-spacing:-.01em}
+.mvstep b{display:block;font-size:13.2px;font-weight:800;margin-bottom:2px}
+.mvat{display:block;color:var(--muted);font-size:12.2px;line-height:1.5;margin-bottom:3px}
+.mvdo{display:block;color:color-mix(in srgb, var(--ink) 88%, var(--muted))}
+.mv-run{margin-top:18px;padding-top:4px}
+.mv-run .bar{margin:4px 0 8px}
+.mv-time{
+  text-align:center;font-size:13px;font-weight:800;color:var(--accent);
+  font-variant-numeric:tabular-nums;margin-bottom:12px;
+}
+.mv-run .timerbtns .btn-outline.slim{min-height:54px}
+
+/* ── 핫플 사진 ───────────────────────── */
+.hot-photo{display:block;width:100%;margin:0 0 12px;border-radius:13px;overflow:hidden;background:var(--surface-2)}
+.hot-photo img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>시동</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<meta name="description" content="기분별 음악, 좋아하는 것 뽑기, 몸풀기, 3분 타이머, 동네 산책 코스.">
+<meta name="description" content="기분별 음악, 좋아하는 것 뽑기, 몸풀기, 동네 산책 코스.">
 <meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="assets/dachshund-180.png">
 <link rel="icon" href="assets/dachshund.png" sizes="512x512" type="image/png">
 <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
-<link rel="stylesheet" href="styles.css?v=20261127q">
+<link rel="stylesheet" href="styles.css?v=20261128a">
 </head>
 <body>
 <svg class="svgdefs" aria-hidden="true" focusable="false"><defs>
@@ -24,7 +24,7 @@
 
   <header class="top">
     <div class="brand"><img class="brand-dog" src="assets/dachshund-face.png" alt=""><span>시동</span></div>
-    <button class="live" id="liveChip" hidden><span id="liveLabel">타이머</span> <span id="liveTime">3:00</span></button>
+    <button class="live" id="liveChip" hidden><span id="liveLabel">몸풀기</span> <span id="liveTime">1:00</span></button>
   </header>
 
   <main>
@@ -68,52 +68,22 @@
     <!-- 3. 몸 움직이기 -->
     <section class="screen" id="screen-body">
       <h1>몸부터 깨우기</h1>
-      <p class="sub">스트레칭·요가부터 창문 열기까지. 하나만 해도 시동 걸림.</p>
+      <p class="sub">동작 하나만 골라서. 누르면 위치랑 방법 다 나옴.</p>
 
       <button class="btn-primary big" id="bodyRandom">오늘 뭐 할까 · 랜덤 1개</button>
 
       <div class="seg tight" id="bodySeg">
         <button data-f="all" class="on">전체</button>
-        <button data-f="stretch">스트레칭·요가</button>
-        <button data-f="simple">간단한 루틴</button>
+        <button data-f="stretch">요가·스트레칭</button>
+        <button data-f="face">지압·페이스</button>
+        <button data-f="simple">간단한 거</button>
       </div>
 
-      <div id="routineBox" class="stack"></div>
-      <div id="moveList" class="stack"></div>
+      <div id="routineBox"></div>
+      <div id="moveGrid" class="mgrid"></div>
     </section>
 
-    <!-- 4. 3분 타이머 -->
-    <section class="screen" id="screen-timer">
-      <h1>일단 3분만</h1>
-      <p class="sub">1분·3분·5분. 시작 버튼만 누르면 됨.</p>
-
-      <div class="seg" id="timerSeg">
-        <button data-min="1">1분</button>
-        <button data-min="3" class="on">3분</button>
-        <button data-min="5">5분</button>
-      </div>
-
-      <div class="timercard">
-        <div class="digits" id="timerDigits">3:00</div>
-        <div class="bar"><i id="timerBar" style="width:0%"></i></div>
-        <div class="timerbtns">
-          <button class="btn-primary" id="timerStart">시작</button>
-          <button class="btn-outline slim" id="timerReset">리셋</button>
-        </div>
-      </div>
-
-      <div class="mini">
-        <div class="mini-label">같이 들을 음악</div>
-        <div class="mini-row">
-          <span id="timerMusicName">아직 안 고름</span>
-          <button class="linkbtn" data-goto="music">고르기</button>
-        </div>
-        <button class="btn-primary listen" id="timerListen" hidden>▶ 이 곡 틀기</button>
-        <div class="applink"><a class="linkbtn tiny" id="timerAppLink" target="_blank" rel="noopener" hidden>스포티파이에서 열기</a></div>
-      </div>
-    </section>
-
-    <!-- 5. 산책 -->
+    <!-- 4. 산책 -->
     <section class="screen" id="screen-walk">
       <h1>동네 한 바퀴</h1>
       <p class="sub" id="walkSub">지금 시간대에 맞는 코스 하나. 검색 안 해도 됨.</p>
@@ -121,7 +91,7 @@
       <div id="walkResult" class="stack"></div>
       <button class="btn-primary big" id="walkRoll">코스 뽑기</button>
       <div id="hotList"></div>
-      <p class="foot">상계주공3단지(동일로215길 48) 기준 · 가보기 누르면 네이버지도로 열림</p>
+      <p class="foot">상계주공3단지(동일로215길 48) 기준 · 가보기 누르면 네이버지도로 열림<br>사진은 가게 블로그·지도 리뷰에서 가져옴</p>
     </section>
   </main>
 
@@ -154,10 +124,6 @@
     <button class="tab" data-tab="body">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.2"/><path d="M12 7v7"/><path d="M6 10.5 12 9l6 1.5"/><path d="M9 21l3-7 3 7"/></svg>
       <span>몸풀기</span>
-    </button>
-    <button class="tab" data-tab="timer">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.5 2"/><path d="M9 2.5h6"/></svg>
-      <span>3분</span>
     </button>
     <button class="tab" data-tab="walk">
       <svg viewBox="0 0 24 24"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
@@ -207,7 +173,6 @@
     <span>누르면</span>
     <select id="fAction">
       <option value="link">링크 열기</option>
-      <option value="timer">3분 타이머</option>
       <option value="body">몸풀기 탭</option>
       <option value="music">음악 탭</option>
     </select>
@@ -218,6 +183,14 @@
   </label>
   <p class="hint" id="fHint"></p>
   <button class="btn-primary" id="fSave">추가</button>
+</div>
+
+<div class="sheet" id="sheetMove">
+  <div class="sheet-head">
+    <h2 id="mvTitle">동작</h2>
+    <button class="x" data-mvclose>닫기</button>
+  </div>
+  <div id="mvBody"></div>
 </div>
 
 <div class="celebrate" id="celebrate" hidden>
@@ -233,8 +206,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="data.js?v=20261127q"></script>
-<script src="art.js?v=20261127q"></script>
-<script src="app.js?v=20261127q"></script>
+<script src="data.js?v=20261128a"></script>
+<script src="app.js?v=20261128a"></script>
 </body>
 </html>
