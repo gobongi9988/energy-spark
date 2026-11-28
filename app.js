@@ -32,8 +32,7 @@
     faveHidden: [],
     musicEdit: false,
     faveEdit: false,
-    bodyFilter: 'all',
-    timerSize: 180
+    bodyFilter: 'all'
   };
   var state;
   try {
@@ -619,7 +618,7 @@
     if (a.type === 'tab') {
       return { body: '몸풀기 열기', music: '음악 틀기' }[a.tab] || '열기';
     }
-    if (a.type === 'move') return '이 동작 바로 시작';
+    if (a.type === 'move') return '이 동작 열기';
     if (a.type === 'song') return '이 곡 바로 틀기';
     return '바로 열기';
   }
@@ -633,17 +632,7 @@
       state.bodyFilter = mv.track;
       save();
       goTab('body');
-      body.activeId = a.id;
-      body.remain = mv.d;
-      body.done = false;
-      body.openId = a.id;
-      routine = null;
-      renderBody();
       openMoveSheet(a.id);
-      chimeStart();
-      body.running = true;
-      body.endAt = Date.now() + mv.d * 1000;
-      renderMoveSheet();
       return;
     }
     if (a.type === 'song') {
@@ -767,8 +756,8 @@
 
   // ── 몸풀기 ──────────────────────────────
   // 그리드에는 딱 그림 + 동작 이름만. 누르면 아래 시트에서 위치·방법·횟수·효과를 다 보여 줌.
-  var body = { activeId: null, running: false, remain: 0, endAt: 0, done: false, openId: null };
-  var routine = null; // { id, i, running, remain, endAt, done }
+  // 시간·타이머 없음 — 시트에서 '했음'만 누르면 바로 완료 축하.
+  var body = { openId: null };
 
   function allMoves() {
     return (D.stretch || []).map(function (m) {
@@ -781,16 +770,6 @@
   function routineById(id) {
     return (D.routines || []).filter(function (r) { return r.id === id; })[0] || null;
   }
-  function fmt(sec) {
-    var s = Math.max(0, Math.ceil(sec));
-    var m = Math.floor(s / 60), r = s % 60;
-    return m + ':' + (r < 10 ? '0' : '') + r;
-  }
-  function durLabel(sec) {
-    if (sec < 60) return sec + '초';
-    var m = Math.floor(sec / 60), r = sec % 60;
-    return r ? m + '분 ' + r + '초' : m + '분';
-  }
   function moveIcon(id) { return 'assets/moves/' + id + '.png'; }
 
   function bodyRandomPool() {
@@ -802,16 +781,9 @@
   }
 
   function moveTile(m) {
-    var active = body.activeId === m.id;
-    var pct = 0;
-    if (active) {
-      pct = body.done ? 100 : (body.remain > 0 ? (1 - body.remain / m.d) * 100 : 0);
-    }
-    return '<button class="mtile' + (active ? ' on' : '') + '" data-move="' + esc(m.id) + '">' +
+    return '<button class="mtile" data-move="' + esc(m.id) + '">' +
       '<span class="mtile-art"><img src="' + moveIcon(m.id) + '" alt="" width="340" height="340" loading="lazy" decoding="async"></span>' +
       '<span class="mtile-name">' + esc(m.name) + '</span>' +
-      (active && body.running ? '<span class="mtile-time" id="mvTileTime">' + fmt(body.remain) + '</span>' : '') +
-      (active ? '<span class="mtile-bar" id="mvTileBar"><i style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i></span>' : '') +
     '</button>';
   }
 
@@ -845,24 +817,21 @@
     $('#moveGrid').innerHTML = html;
   }
 
+  // 코스: 시간 없이 이름 + 몇 개 동작인지 + 동작 칩(누르면 그 동작 시트)
   function routineCard(r) {
-    var cur = (routine && routine.id === r.id) ? routine : null;
-    var total = r.steps.reduce(function (a, s) { return a + s.sec; }, 0);
-    var right;
-    if (!cur) {
-      right = '<button class="rcard-btn" data-rstart="' + esc(r.id) + '">시작</button>';
-    } else if (cur.done) {
-      right = '<button class="rcard-btn" data-rstart="' + esc(r.id) + '">한 번 더</button>';
-    } else {
-      right = '<span class="rtime" id="rTime">' + fmt(cur.remain) + '</span>' +
-        '<button class="rcard-mini" data-rtoggle="' + esc(r.id) + '">' + (cur.running ? '멈춤' : '계속') + '</button>' +
-        '<button class="rcard-mini" data-rnext="' + esc(r.id) + '">' + (cur.i >= r.steps.length - 1 ? '끝내기' : '다음') + '</button>';
-    }
+    var steps = r.steps.map(function (id) {
+      var m = moveById(id);
+      return m ? '<button class="rstep" data-rmove="' + esc(id) + '">' + esc(m.name) + '</button>' : '';
+    }).join('');
     return '<article class="rcard" id="rt-' + esc(r.id) + '">' +
-      '<div class="rcard-main">' +
-        '<div class="rcard-name">' + esc(r.name) + '</div>' +
-        '<div class="rcard-meta">' + r.steps.length + '개 동작 · ' + durLabel(total) + '</div>' +
-      '</div>' + right +
+      '<div class="rcard-head">' +
+        '<div class="rcard-main">' +
+          '<div class="rcard-name">' + esc(r.name) + '</div>' +
+          '<div class="rcard-meta">' + r.steps.length + '개 동작 · ' + esc(r.note) + '</div>' +
+        '</div>' +
+        '<button class="rcard-btn" data-rdone="' + esc(r.id) + '">했음</button>' +
+      '</div>' +
+      '<div class="rcard-steps">' + steps + '</div>' +
     '</article>';
   }
 
@@ -916,9 +885,6 @@
     var m = moveById(body.openId);
     if (!m) return;
     $('#mvTitle').textContent = m.name;
-    var active = body.activeId === m.id;
-    var pct = 0;
-    if (active) pct = body.done ? 100 : (body.remain > 0 ? (1 - body.remain / m.d) * 100 : 0);
 
     var steps = (m.steps || []).map(function (st, i) {
       if (typeof st === 'string') return '<li><span class="mvn">' + (i + 1) + '</span><span class="mvstep">' + esc(st) + '</span></li>';
@@ -929,25 +895,12 @@
       '</span></li>';
     }).join('');
 
-    var btns;
-    if (active && body.running) {
-      btns = '<button class="btn-primary" data-mpause="1">멈춤</button>';
-    } else if (active && body.done) {
-      btns = '<button class="btn-primary" data-mstart="1">한 번 더</button>';
-    } else if (active && body.remain > 0 && body.remain < m.d - 0.5) {
-      btns = '<button class="btn-primary" data-mstart="1">계속</button>';
-    } else {
-      btns = '<button class="btn-primary" data-mstart="1">시작 · ' + durLabel(m.d) + '</button>';
-    }
-    btns += '<button class="btn-outline slim" data-mdone="1">했음</button>';
-
     $('#mvBody').innerHTML =
       '<div class="mvhead">' +
         '<span class="mvic"><img src="' + moveIcon(m.id) + '" alt="" width="340" height="340"></span>' +
         '<div class="mvmeta">' +
           '<span class="tag accent">' + esc(m.type || '간단') + '</span>' +
-          '<span class="tag">' + esc(m.reps || durLabel(m.d)) + '</span>' +
-          (m.reps && m.reps !== durLabel(m.d) ? '<span class="tag">' + esc(durLabel(m.d)) + '</span>' : '') +
+          (m.reps ? '<span class="tag">' + esc(m.reps) + '</span>' : '') +
         '</div>' +
       '</div>' +
       '<p class="mv-good"><b>좋은 데</b>' + esc(m.good) + '</p>' +
@@ -955,9 +908,7 @@
       moveDiagram(m) +
       (steps ? '<div class="mvsteps-label">이렇게</div><ol class="mvsteps">' + steps + '</ol>' : '') +
       '<div class="mv-run">' +
-        (active ? '<div class="bar"><i id="mvBar" style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i></div>' +
-          '<div class="mv-time" id="mvTime">' + (body.done ? '다 했음' : fmt(body.remain)) + '</div>' : '') +
-        '<div class="timerbtns">' + btns + '</div>' +
+        '<button class="btn-primary go" data-mdone="1">했음</button>' +
       '</div>';
   }
 
@@ -971,84 +922,8 @@
     if (sc) sc.scrollTop = 0;
   }
 
-  function startMove() {
-    var m = moveById(body.openId);
-    if (!m) return;
-    routine = null;
-    if (body.activeId !== m.id || body.done || body.remain <= 0) {
-      body.activeId = m.id;
-      body.remain = m.d;
-      body.done = false;
-    }
-    chimeStart();
-    body.running = true;
-    body.endAt = Date.now() + body.remain * 1000;
-    renderBody(); renderMoveSheet();
-  }
-  function pauseMove() {
-    if (!body.running) return;
-    body.remain = Math.max(0, (body.endAt - Date.now()) / 1000);
-    body.running = false;
-    renderBody(); renderMoveSheet();
-  }
-  function finishMove(id) {
-    var m = moveById(id);
-    if (!m) return;
-    routine = null;
-    body.activeId = id;
-    body.openId = id;
-    body.running = false;
-    body.done = true;
-    body.remain = 0;
-    renderBody();
-    if ($('#sheetMove').classList.contains('on')) renderMoveSheet();
-    celebrate();
-  }
-
-  function startRoutine(id) {
-    var r = routineById(id);
-    if (!r) return;
-    body.activeId = null;
-    body.running = false;
-    body.done = false;
-    routine = { id: id, i: 0, running: false, remain: r.steps[0].sec, endAt: 0, done: false };
-    runRoutineStep();
-    bringRoutineIntoView(id);
-  }
-  function bringRoutineIntoView(id) {
-    if (currentTab !== 'body') return;
-    var el = document.getElementById('rt-' + id);
-    if (!el) return;
-    var r = el.getBoundingClientRect();
-    if (r.top < 80 || r.bottom > window.innerHeight - 20) {
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }
-  }
-  function runRoutineStep() {
-    var r = routine && routineById(routine.id);
-    if (!r) return;
-    var st = r.steps[routine.i];
-    routine.done = false;
-    chimeStart();
-    routine.running = true;
-    routine.remain = st.sec;
-    routine.endAt = Date.now() + st.sec * 1000;
-    renderBody();
-  }
-  function nextRoutineStep() {
-    var r = routine && routineById(routine.id);
-    if (!r) return;
-    if (routine.i >= r.steps.length - 1) { finishRoutine(); return; }
-    routine.i += 1;
-    runRoutineStep();
-    bringRoutineIntoView(r.id);
-  }
-  function finishRoutine() {
-    if (!routine) return;
-    routine.running = false;
-    routine.done = true;
-    routine.remain = 0;
-    if (currentTab === 'body') renderBody();
+  function finishMove() {
+    closeSheets();
     celebrate();
   }
 
@@ -1057,17 +932,7 @@
     if (!pool.length) return;
     var m = pickRandom(pool, body.openId);
     if (!m) return;
-    body.activeId = m.id;
-    body.remain = m.d;
-    body.done = false;
-    body.openId = m.id;
-    routine = null;
-    renderBody();
     openMoveSheet(m.id);
-    chimeStart();
-    body.running = true;
-    body.endAt = Date.now() + m.d * 1000;
-    renderMoveSheet();
   });
 
   $('#bodySeg').addEventListener('click', function (e) {
@@ -1077,42 +942,20 @@
     save(); renderBody();
   });
 
-  $('#moveGrid').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-move]');
-    if (b) { openMoveSheet(b.dataset.move); return; }
-    var r = e.target.closest('[data-rstart]');
-    if (r) { startRoutine(r.dataset.rstart); return; }
-    var rt = e.target.closest('[data-rtoggle]');
-    if (rt) { toggleRoutine(rt.dataset.rtoggle); return; }
-    var rn = e.target.closest('[data-rnext]');
-    if (rn) { nextRoutineStep(); return; }
-  });
-  $('#routineBox').addEventListener('click', function (e) {
-    var r = e.target.closest('[data-rstart]');
-    if (r) { startRoutine(r.dataset.rstart); return; }
-    var rt = e.target.closest('[data-rtoggle]');
-    if (rt) { toggleRoutine(rt.dataset.rtoggle); return; }
-    var rn = e.target.closest('[data-rnext]');
-    if (rn) { nextRoutineStep(); return; }
-  });
-  function toggleRoutine(id) {
-    if (!routine || routine.id !== id) { startRoutine(id); return; }
-    if (routine.running) {
-      routine.remain = Math.max(0, (routine.endAt - Date.now()) / 1000);
-      routine.running = false;
-    } else {
-      routine.running = true;
-      routine.endAt = Date.now() + routine.remain * 1000;
-      chimeStart();
-    }
-    renderBody();
+  function bodyClick(e) {
+    var mv = e.target.closest('[data-move]');
+    if (mv) { openMoveSheet(mv.dataset.move); return; }
+    var rm = e.target.closest('[data-rmove]');
+    if (rm) { openMoveSheet(rm.dataset.rmove); return; }
+    var rd = e.target.closest('[data-rdone]');
+    if (rd) { celebrate(); return; }
   }
+  $('#moveGrid').addEventListener('click', bodyClick);
+  $('#routineBox').addEventListener('click', bodyClick);
 
   $('#sheetMove').addEventListener('click', function (e) {
     if (e.target.closest('[data-mvclose]')) { closeSheets(); return; }
-    if (e.target.closest('[data-mstart]')) { startMove(); return; }
-    if (e.target.closest('[data-mpause]')) { pauseMove(); return; }
-    if (e.target.closest('[data-mdone]')) { finishMove(body.openId); return; }
+    if (e.target.closest('[data-mdone]')) { finishMove(); return; }
   });
 
   // ── 산책 ────────────────────────────────
@@ -1136,6 +979,22 @@
   function naverSearch(name) {
     return 'https://map.naver.com/p/search/' + encodeURIComponent(name);
   }
+  // 핫플 주요 메뉴·가격 — 한눈에 박히게 짧은 칩으로
+  function hotMenu(h) {
+    if (!h.menu || !h.menu.length) {
+      return h.menuNote ? '<p class="hmenu-none">' + esc(h.menuNote) + '</p>' : '';
+    }
+    return '<div class="hmenu">' +
+      '<span class="hmenu-t">주요 메뉴</span>' +
+      '<div class="hmenu-grid">' +
+        h.menu.map(function (m) {
+          return '<span class="hm"><b>' + esc(m.n) + '</b><i>' + esc(m.p) + '</i></span>';
+        }).join('') +
+      '</div>' +
+      (h.menuNote ? '<p class="hmenu-none">' + esc(h.menuNote) + '</p>' : '') +
+    '</div>';
+  }
+
   function renderWalk() {
     var band = bandNow();
     $('#walkSub').textContent = '지금은 ' + band + '. 이 시간에 맞는 코스만 골라줌.';
@@ -1187,6 +1046,7 @@
           '<h3>' + esc(h.name) + '</h3>' +
           '<p class="hot-addr">' + esc(h.addr) + '</p>' +
           '<p class="hot-note">' + esc(h.note) + '</p>' +
+          hotMenu(h) +
           (h.hours ? '<p class="hot-hours">' + esc(h.hours) + '</p>' : '') +
           '<div class="mapbtns"><a class="mapbtn" href="' + naverSearch(h.query) + '" target="_blank" rel="noopener">가보기</a></div>' +
         '</article>';
@@ -1198,51 +1058,6 @@
     var c = pickRandom(pool, state.lastCourseId);
     state.lastCourseId = c.id;
     save(); renderWalk();
-  });
-
-  // ── 공통 틱 ─────────────────────────────
-  var chip = $('#liveChip'), chipTime = $('#liveTime'), chipLabel = $('#liveLabel');
-  setInterval(function () {
-    if (routine && routine.running) {
-      var rr = routineById(routine.id);
-      if (rr) {
-        routine.remain = Math.max(0, (routine.endAt - Date.now()) / 1000);
-        if (routine.remain <= 0) {
-          nextRoutineStep();
-        } else if (currentTab === 'body') {
-          var rtime = $('#rTime');
-          if (rtime) rtime.textContent = fmt(routine.remain);
-        }
-      }
-    } else if (body.running) {
-      var bm = moveById(body.activeId);
-      if (bm) {
-        body.remain = Math.max(0, (body.endAt - Date.now()) / 1000);
-        if (body.remain <= 0) {
-          finishMove(bm.id);
-        } else {
-          var mbar = $('#mvBar');
-          if (mbar) mbar.style.width = Math.max(0, Math.min(100, (1 - body.remain / bm.d) * 100)) + '%';
-          var mtime = $('#mvTime');
-          if (mtime) mtime.textContent = fmt(body.remain);
-          var ttime = $('#mvTileTime');
-          if (ttime) ttime.textContent = fmt(body.remain);
-          var tbar = $('#mvTileBar');
-          if (tbar) tbar.firstChild.style.width = Math.max(0, Math.min(100, (1 - body.remain / bm.d) * 100)) + '%';
-        }
-      }
-    }
-    if (routine && routine.running) {
-      chip.hidden = false; chipLabel.textContent = '코스'; chipTime.textContent = fmt(routine.remain);
-    } else if (body.running) {
-      chip.hidden = false; chipLabel.textContent = '몸풀기'; chipTime.textContent = fmt(body.remain);
-    } else {
-      chip.hidden = true;
-    }
-  }, 200);
-  chip.addEventListener('click', function () {
-    goTab('body');
-    if (body.activeId) openMoveSheet(body.activeId);
   });
 
   // ── 시작 ────────────────────────────────

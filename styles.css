@@ -62,13 +62,6 @@ h3{font-size:19px;line-height:1.3;letter-spacing:-.02em;font-weight:700}
   -webkit-backdrop-filter:saturate(180%) blur(16px);
 }
 .brand{font-size:14px;font-weight:800;letter-spacing:.22em}
-.live{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:7px 12px;border-radius:999px;border:1px solid var(--line);
-  background:var(--surface);font-size:12.5px;font-weight:700;
-  font-variant-numeric:tabular-nums;
-}
-.live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
 
 /* ── 화면 ───────────────────────────── */
 .screen{display:none;padding:6px 22px 28px}
@@ -266,6 +259,33 @@ a.btn-primary{text-decoration:none}
 .hot-note{font-size:12.5px;line-height:1.5;color:var(--muted);margin-top:4px;letter-spacing:-.01em}
 .hot-hours{font-size:12px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
 .card.hot .mapbtns{margin-top:11px}
+
+/* ── 핫플 주요 메뉴 · 가격 ─────────────── */
+.hmenu{margin-top:12px}
+.hmenu-t{
+  display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;
+  color:var(--accent);margin-bottom:7px;
+}
+.hmenu-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.hm{
+  display:flex;align-items:baseline;justify-content:space-between;gap:6px;
+  padding:8px 10px;border-radius:11px;
+  border:1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  background:color-mix(in srgb, var(--accent) 7%, var(--surface-2));
+}
+.hm b{
+  min-width:0;font-size:11.8px;font-weight:750;letter-spacing:-.02em;line-height:1.25;
+  color:var(--ink);
+}
+.hm i{
+  flex:0 0 auto;font-style:normal;font-size:12.8px;font-weight:800;
+  color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+}
+.hm i::after{content:"원";font-size:9.5px;font-weight:700;margin-left:1px;opacity:.75;vertical-align:1px}
+.hmenu-none{
+  margin-top:8px;font-size:11.5px;color:var(--muted);letter-spacing:-.01em;
+  padding:8px 10px;border-radius:10px;border:1px dashed var(--line);background:var(--surface-2);
+}
 
 /* ── 산책 ───────────────────────────── */
 .stops{display:flex;flex-direction:column;gap:10px;margin-top:4px}
@@ -467,31 +487,26 @@ body.has-dock.dock-open .app{padding-bottom:calc(340px + env(safe-area-inset-bot
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   min-height:2.64em;
 }
-.mtile-time{
-  position:absolute;top:9px;right:9px;padding:3px 7px;border-radius:8px;
-  background:var(--accent);color:#fff8f4;font-size:11px;font-weight:800;
-  font-variant-numeric:tabular-nums;
-}
-.mtile-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--surface-2)}
-.mtile-bar i{display:block;height:100%;background:var(--accent);transition:width .3s linear}
 
 /* ── 코스 카드 ────────────────────────── */
 .rcard{
-  display:flex;align-items:center;gap:10px;padding:13px 14px;margin-bottom:8px;
+  display:block;padding:13px 14px;margin-bottom:8px;
   border-radius:16px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow);
 }
+.rcard-head{display:flex;align-items:center;gap:10px}
 .rcard-main{min-width:0;flex:1}
-.rcard-name{font-size:14px;font-weight:700;letter-spacing:-.01em}
-.rcard-meta{font-size:11.5px;color:var(--muted);margin-top:2px}
+.rcard-name{font-size:14.5px;font-weight:800;letter-spacing:-.01em}
+.rcard-meta{font-size:11.5px;color:var(--muted);margin-top:2px;letter-spacing:-.01em}
 .rcard-btn{
   flex:0 0 auto;padding:9px 16px;border-radius:11px;border:0;
-  background:var(--ink);color:var(--bg);font-size:13px;font-weight:700;
+  background:var(--accent);color:#fff8f4;font-size:13px;font-weight:800;
 }
-.rcard-mini{
-  flex:0 0 auto;padding:8px 12px;border-radius:10px;border:1px solid var(--line);
-  background:var(--surface-2);font-size:12px;font-weight:700;
+.rcard-steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.rstep{
+  padding:7px 11px;border-radius:10px;border:1px solid var(--line);
+  background:var(--surface-2);font-size:12px;font-weight:700;letter-spacing:-.02em;color:var(--ink);
 }
-.rtime{flex:0 0 auto;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent)}
+.rstep:active{transform:scale(.97)}
 
 /* ── 동작 상세 시트 ───────────────────── */
 .mvhead{display:flex;align-items:center;gap:14px;margin-bottom:14px}
@@ -533,13 +548,8 @@ body.has-dock.dock-open .app{padding-bottom:calc(340px + env(safe-area-inset-bot
 .mvstep b{display:block;font-size:13.2px;font-weight:800;margin-bottom:2px}
 .mvat{display:block;color:var(--muted);font-size:12.2px;line-height:1.5;margin-bottom:3px}
 .mvdo{display:block;color:color-mix(in srgb, var(--ink) 88%, var(--muted))}
-.mv-run{margin-top:18px;padding-top:4px}
-.mv-run .bar{margin:4px 0 8px}
-.mv-time{
-  text-align:center;font-size:13px;font-weight:800;color:var(--accent);
-  font-variant-numeric:tabular-nums;margin-bottom:12px;
-}
-.mv-run .timerbtns .btn-outline.slim{min-height:54px}
+.mv-run{margin-top:22px}
+.mv-run .btn-primary.go{width:100%;min-height:58px;font-size:16px;letter-spacing:0}
 
 /* ── 핫플 사진 ───────────────────────── */
 .hot-photo{display:block;width:100%;margin:0 0 12px;border-radius:13px;overflow:hidden;background:var(--surface-2)}
