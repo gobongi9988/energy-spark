@@ -689,7 +689,7 @@
       return '<button class="row" data-fav="' + esc(f.id) + '">' +
         '<span class="row-main">' +
           '<span class="row-title">' + esc(f.title) + '</span>' +
-          '<span class="row-meta">' + esc(f.meta || '') + (favInApp(f.action) ? ' · 앱 안에서' : ' · 링크') + '</span>' +
+          '<span class="row-meta">' + [esc(f.meta || ''), (favInApp(f.action) ? '앱 안에서' : '링크')].filter(Boolean).join(' · ') + '</span>' +
         '</span>' +
         (state.faveEdit
           ? '<span class="row-del" data-fdel="' + esc(f.id) + '">−</span>'
