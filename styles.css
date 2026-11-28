@@ -268,20 +268,20 @@ a.btn-primary{text-decoration:none}
 }
 .hmenu-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .hm{
-  display:flex;align-items:baseline;justify-content:space-between;gap:6px;
-  padding:8px 10px;border-radius:11px;
+  display:flex;align-items:baseline;justify-content:space-between;gap:4px;
+  padding:8px 8px;border-radius:11px;
   border:1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
   background:color-mix(in srgb, var(--accent) 7%, var(--surface-2));
 }
 .hm b{
-  min-width:0;font-size:11.8px;font-weight:750;letter-spacing:-.02em;line-height:1.25;
-  color:var(--ink);
+  min-width:0;font-size:11.2px;font-weight:750;letter-spacing:-.03em;line-height:1.25;
+  color:var(--ink);word-break:keep-all;
 }
 .hm i{
-  flex:0 0 auto;font-style:normal;font-size:12.8px;font-weight:800;
-  color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+  flex:0 0 auto;font-style:normal;font-size:12.2px;font-weight:800;white-space:nowrap;
+  color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-.02em;
 }
-.hm i::after{content:"원";font-size:9.5px;font-weight:700;margin-left:1px;opacity:.75;vertical-align:1px}
+.hm i::after{content:"원";font-size:9px;font-weight:700;margin-left:1px;opacity:.8;vertical-align:1px}
 .hmenu-none{
   margin-top:8px;font-size:11.5px;color:var(--muted);letter-spacing:-.01em;
   padding:8px 10px;border-radius:10px;border:1px dashed var(--line);background:var(--surface-2);

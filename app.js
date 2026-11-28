@@ -908,7 +908,7 @@
       moveDiagram(m) +
       (steps ? '<div class="mvsteps-label">이렇게</div><ol class="mvsteps">' + steps + '</ol>' : '') +
       '<div class="mv-run">' +
-        '<button class="btn-primary go" data-mdone="1">했음</button>' +
+        '<button class="btn-primary accent go" data-mdone="1">했음</button>' +
       '</div>';
   }
 
